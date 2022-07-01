@@ -18,7 +18,7 @@ import jade.lang.acl.ACLMessage;
 import tools.emojis;
 import world.Perceptor;
 
-public class AT_ST extends LARVAFirstAgent {
+public class STF extends LARVAFirstAgent {
 
     enum Status {
         START, CHECKIN, CHECKOUT, OPENPROBLEM, CLOSEPROBLEM, JOINSESSION, SOLVEPROBLEM, EXIT
@@ -59,9 +59,10 @@ public class AT_ST extends LARVAFirstAgent {
                 myStatus = MyJoinSession();
                 break;
             case SOLVEPROBLEM:                
-                myStatus = FreeNavigation(new String[]{}); //FreeNavigation(); // This
+//                myStatus = FreeNavigation(new String[]{}); //FreeNavigation(); // This
 //                myStatus = FreeNavigation(new String[]{"RIGHT","RIGHT","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","RIGHT","MOVE","RIGHT","MOVE"}); //FreeNavigation(); // This
 //                myStatus = FreeNavigation(new String[]{"LEFT","LEFT","LEFT","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","LEFT","MOVE","MOVE","MOVE","MOVE","MOVE","RIGHT","MOVE","MOVE","MOVE","MOVE","MOVE","LEFT","MOVE"}); //FreeNavigation(); // This
+                myStatus = AssistedNavigation(77, 52, new String[]{}); //FreeNavigation(); // This
 //                myStatus = AssistedNavigation(77, 52, new String[]{"RIGHT","RIGHT","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","RIGHT","MOVE","RIGHT","MOVE"}); //FreeNavigation(); // This
 //                myStatus = AssistedNavigation(90,33,new String[]{"LEFT","LEFT","LEFT","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","LEFT","MOVE","MOVE","MOVE","MOVE","MOVE","RIGHT","MOVE","MOVE","MOVE","MOVE","MOVE","LEFT","MOVE"}); //FreeNavigation(); // This
                 break;
@@ -141,7 +142,7 @@ public class AT_ST extends LARVAFirstAgent {
         int startx = 50, starty = 50;
 //        Info("Joining session " + sessionKey + " at " + startx + " " + starty);
         // Declare publicily my type so that everybody could ask DF
-        this.DFAddMyServices(new String[]{"TYPE AT_ST"});
+        this.DFAddMyServices(new String[]{"TYPE STF"});
         // request join at a certain point in the map
 //        command = "Request join session " + sessionKey + " at " + startx + " " + starty;
         command = "Request join session " + sessionKey;
