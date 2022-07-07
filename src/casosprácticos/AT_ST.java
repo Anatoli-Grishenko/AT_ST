@@ -1,49 +1,42 @@
 /*
-* Create new project
-* Copy from AgentLARVAFull
-* Introduce new State JOINSESSION, create myJoinSession(), add change of state after OpenProblem
-* Introduce new probles: Array problems[] and inputSelect()
-* Join Session
-* Explain HUD y MAP.
-* SolveProblem: step a step
-* Manual
-* semiauto
-* assisted
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
  */
-package at_st;
+package casosprácticos;
 
 import agents.LARVAFirstAgent;
-import geometry.Point3D;
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
 import tools.emojis;
 import world.Perceptor;
 
+/**
+ *
+ * @author lcv
+ */
 public class AT_ST extends LARVAFirstAgent {
 
     enum Status {
-        START, CHECKIN, CHECKOUT, OPENPROBLEM, CLOSEPROBLEM, JOINSESSION, SOLVEPROBLEM, EXIT
+        START, CHECKIN, CHECKOUT, OPENPROBLEM, CLOSEPROBLEM, SOLVEPROBLEM, EXIT, JOINSESSION
     }
     Status myStatus;
-    String service = "PMANAGER", problem = "",
-            problemManager = "", content, sessionKey, sessionManager;
-    String problems[];
+    String service = "PMANAGER", problem = "SandboxTesting",
+            problemManager = "", content, sessionKey, sessionManager, action = "", preplan = "",
+            mission, task;
     ACLMessage open, session;
-    String[] contentTokens;
-    String action = "", preplan = "", plan = "";
-        int i = 0;
-    
+    String[] contentTokens,
+            actions = new String[]{"LEFT", "RIGHT", "MOVE", "EXIT"},
+            plan, //  = new String[]{"RIGHT", "MOVE", "MOVE", "MOVE", "MOVE", "MOVE", "MOVE", "MOVE", "MOVE", "MOVE", "MOVE", "MOVE", "MOVE", "EXIT"},
+            tasks;
+    int indexplan = 0;
+
     @Override
     public void setup() {
-        //this.enableDeepLARVAMonitoring(); // This
         super.setup();
         logger.onTabular();
         myStatus = Status.START;
-        problems = new String[]{ // This
-            "SandboxTesting",
-            "SandboxBasic",
-            "SandboxFlat-1-1"};
-        this.setupEnvironment(); // This
+        this.setupEnvironment();
     }
 
     @Override
@@ -63,11 +56,7 @@ public class AT_ST extends LARVAFirstAgent {
                 myStatus = MyJoinSession();
                 break;
             case SOLVEPROBLEM:
-                myStatus = FreeNavigation(new String[]{}); //FreeNavigation(); // This
-//                myStatus = FreeNavigation(new String[]{"RIGHT","RIGHT","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","RIGHT","MOVE","RIGHT","MOVE"}); //FreeNavigation(); // This
-//                myStatus = FreeNavigation(new String[]{"LEFT","LEFT","LEFT","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","LEFT","MOVE","MOVE","MOVE","MOVE","MOVE","RIGHT","MOVE","MOVE","MOVE","MOVE","MOVE","LEFT","MOVE"}); //FreeNavigation(); // This
-//                myStatus = AssistedNavigation(77, 52, new String[]{"RIGHT","RIGHT","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","RIGHT","MOVE","RIGHT","MOVE"}); //FreeNavigation(); // This
-//                myStatus = AssistedNavigation(90,33,new String[]{"LEFT","LEFT","LEFT","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","MOVE","LEFT","MOVE","MOVE","MOVE","MOVE","MOVE","RIGHT","MOVE","MOVE","MOVE","MOVE","MOVE","LEFT","MOVE"}); //FreeNavigation(); // This
+                myStatus = MySolveProblem();
                 break;
             case CLOSEPROBLEM:
                 myStatus = MyCloseProblem();
@@ -86,7 +75,6 @@ public class AT_ST extends LARVAFirstAgent {
     public void takeDown() {
         Info("Taking down...");
         this.saveSequenceDiagram("./" + getLocalName() + ".seqd");
-        closeRemote();
         super.takeDown();
     }
 
@@ -113,11 +101,6 @@ public class AT_ST extends LARVAFirstAgent {
         }
         problemManager = this.DFGetAllProvidersOf(service).get(0);
         Info("Found problem manager " + problemManager);
-        problem = this.inputSelect("Problem Manager " + problemManager + " is on."
-                + "\nPlease select the problem to open", problems, "");
-        if (problem == null) {
-            return Status.CHECKOUT;
-        }
         this.outbox = new ACLMessage();
         outbox.setSender(getAID());
         outbox.addReceiver(new AID(problemManager, AID.ISLOCALNAME));
@@ -133,101 +116,58 @@ public class AT_ST extends LARVAFirstAgent {
             session = LARVAblockingReceive();
             sessionManager = session.getSender().getLocalName();
             Info(sessionManager + " says: " + session.getContent());
-            return Status.JOINSESSION;   // This
+            return Status.JOINSESSION;
         } else {
             Error(content);
             return Status.CHECKOUT;
         }
     }
 
-    // This
     public Status MyJoinSession() {
-        String command, answer;
-        int startx = 50, starty = 50;
-//        Info("Joining session " + sessionKey + " at " + startx + " " + starty);
-        // Declare publicily my type so that everybody could ask DF
         this.DFAddMyServices(new String[]{"TYPE AT_ST"});
-        // request join at a certain point in the map
-//        command = "Request join session " + sessionKey + " at " + startx + " " + starty;
-        command = "Request join session " + sessionKey;
         outbox = session.createReply();
-        outbox.setContent(command);
+        outbox.setContent("Request join session " + sessionKey);
         this.LARVAsend(outbox);
         session = this.LARVAblockingReceive();
         if (!session.getContent().startsWith("Confirm")) {
-            Error("Could not join session due to: " + session.getContent());
+            Error("Could not join session " + sessionKey + " due to " + session.getContent());
             return Status.CLOSEPROBLEM;
         }
-        if (!this.MyReadPerceptions()) {
-            return Status.CLOSEPROBLEM;
-        }
-        openRemote();
+        this.openRemote();
+        this.AssistedNavigation(37, 13);
         return Status.SOLVEPROBLEM;
     }
 
-    // This
-    protected Status FreeNavigation(String steps[]) {        
-        if (steps.length > 0 && i < steps.length) {
-            action = steps[i++];
+    public Status MySolveProblem() {
+        this.MyReadPerceptions();
+        if (plan == null) {
+            action = this.inputSelect("Please select next action to execute: ", actions, action);
+            preplan += "\"" + action + "\",";
         } else {
-            action = this.inputSelect("Execute ", new String[]{"RIGHT", "LEFT", "MOVE", "UP", "DOWN", "EXIT"}, action);
+            action = plan[indexplan++];
         }
         if (action == null || action.equals("EXIT")) {
             return Status.CLOSEPROBLEM;
-        } else {
-            if (!MyExecuteAction(action)) {
-                return Status.CLOSEPROBLEM;
-            }
-            this.MyReadPerceptions();
-            plan += "\"" + action + "\",";
-            Info("Plan =\n" + plan);
-            return Status.SOLVEPROBLEM;
         }
+        if (!MyExecuteAction(action)) {
+            return Status.CLOSEPROBLEM;
+        }
+        return Status.SOLVEPROBLEM;
     }
 
-//    // This
-    protected Status AssistedNavigation(int x, int y, String steps[]) {
-        int goalx, goaly;
+    protected Status AssistedNavigation(int goalx, int goaly) {
         String plan1[] = {};
 
-        goalx = x;
-        goaly = y;
         Info("Requesting course to " + goalx + " " + goaly);
         outbox = session.createReply();
-        outbox.setContent("Request course to " + goalx + " " + goaly + " session " + sessionKey);
+        outbox.setContent("Request course to " + goalx + " " + goaly + " Session " + sessionKey);
         this.LARVAsend(outbox);
         session = this.LARVAblockingReceive();
-        if (session.getContent().startsWith("Failure")) {
-            Error("Could not find a course to " + goalx + " " + goaly + " due to " + session.getContent());
-            return Status.CLOSEPROBLEM;
-        }
-        if (getEnvironment().setExternalPerceptions(session.getContent()) == null) {
-            Error("Unable to find a path due to " + session.getContent());
-            return Status.CLOSEPROBLEM;
-        }
-        return FreeNavigation(steps);
+        getEnvironment().setExternalPerceptions(session.getContent());
+        return MySolveProblem();
     }
 
-    // This
-    protected boolean MyReadPerceptions() {
-        Info("Reading perceptions");
-        outbox = session.createReply();
-        outbox.setContent("Query sensors session " + sessionKey);
-        this.LARVAsend(outbox);
-        session = this.LARVAblockingReceive();
-        if (session.getContent().startsWith("Failure")) {
-            Error("Unable to read perceptions due to " + session.getContent());
-            return false;
-        }
-        if (getEnvironment().setExternalPerceptions(session.getContent()) != null) {
-            Info(easyPrintPerceptions());
-            return true;
-        } else {
-            return false;
-        }
-    }
 
-    // This
     protected boolean MyExecuteAction(String action) {
         Info("Executing action " + action);
         outbox = session.createReply();
@@ -241,17 +181,32 @@ public class AT_ST extends LARVAFirstAgent {
         return true;
     }
 
-    protected Status MyCloseProblem() {
+    protected boolean MyReadPerceptions() {
+        Info("Reading perceptions");
+        outbox = session.createReply();
+        outbox.setContent("Query sensors session " + sessionKey);
+        this.LARVAsend(outbox);
+        session = this.LARVAblockingReceive();
+        if (session.getContent().startsWith("Failure")) {
+            Error("Unable to read perceptions due to " + session.getContent());
+            return false;
+        }
+        getEnvironment().setExternalPerceptions(session.getContent());
+//        Info(this.easyPrintPerceptions());
+        return true;
+    }
+
+    public Status MyCloseProblem() {
         outbox = open.createReply();
         outbox.setContent("Cancel session " + sessionKey);
         Info("Closing problem " + problem + ", session " + sessionKey);
+        Info("PLAN: " + preplan);
         this.LARVAsend(outbox);
         inbox = LARVAblockingReceive();
         Info(problemManager + " says: " + inbox.getContent());
         return Status.CHECKOUT;
     }
 
-    // This
     public String easyPrintPerceptions() {
         String res;
         int matrix[][];
@@ -270,12 +225,11 @@ public class AT_ST extends LARVAFirstAgent {
         res += "\n";
         res += String.format("%10s: %05d W\n", "ENERGY", getEnvironment().getEnergy());
         res += String.format("%10s: %15s\n", "POSITION", getEnvironment().getGPS().toString());
+//        res += "PAYLOAD "+getEnvironment().getPayload()+" m"+"\n";
         res += String.format("%10s: %05d m\n", "X", getEnvironment().getGPS().getXInt())
                 + String.format("%10s: %05d m\n", "Y", getEnvironment().getGPS().getYInt())
                 + String.format("%10s: %05d m\n", "Z", getEnvironment().getGPS().getZInt())
-                + String.format("%10s: %05d m\n", "RANGE", getEnvironment().getRange())
                 + String.format("%10s: %05d m\n", "MAXLEVEL", getEnvironment().getMaxlevel())
-                + String.format("%10s: %05d m\n", "MINLEVEL", getEnvironment().getMinlevel())
                 + String.format("%10s: %05d m\n", "MAXSLOPE", getEnvironment().getMaxslope());
         res += String.format("%10s: %05d m\n", "GROUND", getEnvironment().getGround());
         res += String.format("%10s: %05d º\n", "COMPASS", getEnvironment().getCompass());
