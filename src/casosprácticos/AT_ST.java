@@ -17,19 +17,17 @@ import world.Perceptor;
  */
 public class AT_ST extends LARVAFirstAgent {
 
-    enum Status {
-        START, CHECKIN, CHECKOUT, OPENPROBLEM, CLOSEPROBLEM, SOLVEPROBLEM, EXIT, JOINSESSION
+    protected enum Status {
+        START, CHECKIN, CHECKOUT, OPENPROBLEM, CLOSEPROBLEM, JOINSESSION, SOLVEPROBLEM, EXIT
     }
-    Status myStatus;
-    String service = "PMANAGER", problem = "SandboxTesting",
-            problemManager = "", content, sessionKey, sessionManager, action = "", preplan = "",
-            mission, task;
-    ACLMessage open, session;
-    String[] contentTokens,
-            actions = new String[]{"LEFT", "RIGHT", "MOVE", "EXIT"},
-            plan, //  = new String[]{"RIGHT", "MOVE", "MOVE", "MOVE", "MOVE", "MOVE", "MOVE", "MOVE", "MOVE", "MOVE", "MOVE", "MOVE", "MOVE", "EXIT"},
-            tasks;
-    int indexplan = 0;
+    protected Status myStatus;
+    protected String service = "PMANAGER", problem = "",
+            problemManager = "", content, sessionKey, sessionManager;
+    protected String problems[], plan[], actions[];
+    protected ACLMessage open, session;
+    protected String[] contentTokens;
+    protected String action = "", preplan = "";
+    protected int indexplan = 0;
 
     @Override
     public void setup() {
@@ -37,6 +35,28 @@ public class AT_ST extends LARVAFirstAgent {
         logger.onTabular();
         myStatus = Status.START;
         this.setupEnvironment();
+
+        actions = new String[]{
+            "LEFT",
+            "RIGHT",
+            "MOVE",
+            "UP",
+            "DOWN",
+            "EXIT"};
+        problems = new String[]{
+            "SandboxTesting",
+            "SandboxFlatN",
+            "SandboxFlat-1-1",
+            "SandboxFlatS",
+            "SandboxBumpy0",
+            "SandboxBumpy1",
+            "SandboxBumpy2",
+            "SandboxBumpy3",
+            "SandboxBumpy4",
+            "SandboxBumpy4UPS",
+            "SandboxHalfmoon1",
+            "SandboxHalfmoon1Inv",
+            "SandboxHalfmoon3",};
     }
 
     @Override
@@ -101,6 +121,10 @@ public class AT_ST extends LARVAFirstAgent {
         }
         problemManager = this.DFGetAllProvidersOf(service).get(0);
         Info("Found problem manager " + problemManager);
+        problem = this.inputSelect("PLease select problem to solve", problems, problem);
+        if (problem == null) {
+            return Status.CHECKOUT;
+        }
         this.outbox = new ACLMessage();
         outbox.setSender(getAID());
         outbox.addReceiver(new AID(problemManager, AID.ISLOCALNAME));
@@ -133,8 +157,13 @@ public class AT_ST extends LARVAFirstAgent {
             Error("Could not join session " + sessionKey + " due to " + session.getContent());
             return Status.CLOSEPROBLEM;
         }
+        if (problem.equals("SandboxTesting")) {
+            this.AssistedNavigation(37, 13);
+        }
+        this.MyReadPerceptions();
         this.openRemote();
-        this.AssistedNavigation(37, 13);
+        this.setFrameDelay(100);
+        Info(this.easyPrintPerceptions());
         return Status.SOLVEPROBLEM;
     }
 
@@ -166,7 +195,6 @@ public class AT_ST extends LARVAFirstAgent {
         getEnvironment().setExternalPerceptions(session.getContent());
         return MySolveProblem();
     }
-
 
     protected boolean MyExecuteAction(String action) {
         Info("Executing action " + action);
@@ -240,21 +268,21 @@ public class AT_ST extends LARVAFirstAgent {
             res += String.format("%10s: %05.2f º\n", "ABS ALPHA", getEnvironment().getAngular());
             res += String.format("%10s: %05.2f º\n", "REL ALPHA", getEnvironment().getRelativeAngular());
         }
-        res += "\nVISUAL ABSOLUTE\n";
-        matrix = getEnvironment().getAbsoluteVisual();
-        for (int y = 0; y < matrix[0].length; y++) {
-            for (int x = 0; x < matrix.length; x++) {
-                res += printValue(matrix[x][y]);
-            }
-            res += "\n";
-        }
-        for (int x = 0; x < matrix.length; x++) {
-            if (x != matrix.length / 2) {
-                res += "----";
-            } else {
-                res += "[  ]-";
-            }
-        }
+//        res += "\nVISUAL ABSOLUTE\n";
+//        matrix = getEnvironment().getAbsoluteVisual();
+//        for (int y = 0; y < matrix[0].length; y++) {
+//            for (int x = 0; x < matrix.length; x++) {
+//                res += printValue(matrix[x][y]);
+//            }
+//            res += "\n";
+//        }
+//        for (int x = 0; x < matrix.length; x++) {
+//            if (x != matrix.length / 2) {
+//                res += "----";
+//            } else {
+//                res += "[  ]-";
+//            }
+//        }
         res += "\nVISUAL RELATIVE\n";
         matrix = getEnvironment().getRelativeVisual();
         for (int y = 0; y < matrix[0].length; y++) {
@@ -270,15 +298,15 @@ public class AT_ST extends LARVAFirstAgent {
                 res += "[  ]-";
             }
         }
-        res += "VISUAL POLAR\n";
-        matrix = getEnvironment().getPolarVisual();
-        for (int y = 0; y < matrix[0].length; y++) {
-            for (int x = 0; x < matrix.length; x++) {
-                res += printValue(matrix[x][y]);
-            }
-            res += "\n";
-        }
-        res += "\n";
+//        res += "VISUAL POLAR\n";
+//        matrix = getEnvironment().getPolarVisual();
+//        for (int y = 0; y < matrix[0].length; y++) {
+//            for (int x = 0; x < matrix.length; x++) {
+//                res += printValue(matrix[x][y]);
+//            }
+//            res += "\n";
+//        }
+//        res += "\n";
         res += "LIDAR RELATIVE\n";
         matrix = getEnvironment().getRelativeLidar();
         for (int y = 0; y < matrix[0].length; y++) {

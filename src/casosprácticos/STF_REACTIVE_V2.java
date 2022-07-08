@@ -16,38 +16,8 @@ import jade.lang.acl.ACLMessage;
 import tools.emojis;
 import world.Perceptor;
 
-public class STF_REACTIVE_V2 extends AT_ST_REACTIVE {
+public class STF_REACTIVE_V2 extends STF_REACTIVE {
 
-    @Override
-    public void setup() {
-        super.setup();
-        A = new DecisionSet();
-        A.
-                addChoice(new Choice("DOWN")).
-                addChoice(new Choice("UP")).
-                addChoice(new Choice("MOVE")).
-                addChoice(new Choice("LEFT")).
-                addChoice(new Choice("RIGHT"));
-
-    }
-
-    @Override
-    public Status MyJoinSession() {
-        this.DFAddMyServices(new String[]{"TYPE STF"});
-        outbox = session.createReply();
-        outbox.setContent("Request join session " + sessionKey);
-        this.LARVAsend(outbox);
-        session = this.LARVAblockingReceive();
-        if (!session.getContent().startsWith("Confirm")) {
-            Error("Could not join session " + sessionKey + " due to " + session.getContent());
-            return Status.CLOSEPROBLEM;
-        }
-        this.MyReadPerceptions();
-        this.openRemote();
-        this.setFrameDelay(100);
-        Info(this.easyPrintPerceptions());
-        return Status.SOLVEPROBLEM;
-    }
 
     @Override
     protected double U(Environment E, Choice a) {
