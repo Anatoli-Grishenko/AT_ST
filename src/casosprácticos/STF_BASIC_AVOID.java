@@ -16,18 +16,16 @@ import jade.lang.acl.ACLMessage;
 import tools.emojis;
 import world.Perceptor;
 
-public class STF_REACTIVE_V2 extends STF_REACTIVE {
-
+public class STF_BASIC_AVOID extends STF_DIRECT_DRIVE {
 
     @Override
     protected double U(Environment E, Choice a) {
-        if (E.getDistance() > 0 && 
-                E.getGPS().getZ() < E.getMaxlevel()) {
+        if (E.getDistance() > 0
+                && E.getGPS().getZ() < E.getMaxlevel()) {
             if (a.getName().equals("UP")) {
                 return Choice.ANY_VALUE;
             }
-        }
-        if (E.getDistance() == 0 && E.getGround()>0) {
+        } else if (E.getDistance() == 0 && E.getGround() > 0) {
             if (a.getName().equals("DOWN")) {
                 return Choice.ANY_VALUE;
             }
@@ -35,7 +33,7 @@ public class STF_REACTIVE_V2 extends STF_REACTIVE {
             if (E.isFreeFront()) {
                 if (a.getName().equals("MOVE")) {
                     return U(S(E, a));
-                } else if (a.getName().equals("LEFT") || a.getName().equals("RIGHT")){
+                } else if (a.getName().equals("LEFT") || a.getName().equals("RIGHT")) {
                     return U(S(E, a), new Choice("MOVE"));
                 }
             } else {

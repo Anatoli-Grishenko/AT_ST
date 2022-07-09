@@ -27,7 +27,7 @@ public class AT_ST extends LARVAFirstAgent {
     protected ACLMessage open, session;
     protected String[] contentTokens;
     protected String action = "", preplan = "";
-    protected int indexplan = 0;
+    protected int indexplan = 0, myEnergy = 0;
 
     @Override
     public void setup() {
@@ -35,7 +35,7 @@ public class AT_ST extends LARVAFirstAgent {
         logger.onTabular();
         myStatus = Status.START;
         this.setupEnvironment();
-
+        this.setFrameDelay(100);
         actions = new String[]{
             "LEFT",
             "RIGHT",
@@ -56,7 +56,11 @@ public class AT_ST extends LARVAFirstAgent {
             "SandboxBumpy4UPS",
             "SandboxHalfmoon1",
             "SandboxHalfmoon1Inv",
-            "SandboxHalfmoon3",};
+            "SandboxHalfmoon3",
+            "SandboxIndonesia",
+            "SandboxIndonesiaFlatNW",
+            "SandboxIndonesiaFlatN"
+        };
     }
 
     @Override
@@ -161,9 +165,8 @@ public class AT_ST extends LARVAFirstAgent {
             this.AssistedNavigation(37, 13);
         }
         this.MyReadPerceptions();
-        this.openRemote();
-        this.setFrameDelay(100);
         Info(this.easyPrintPerceptions());
+        this.openRemote();
         return Status.SOLVEPROBLEM;
     }
 
@@ -201,6 +204,7 @@ public class AT_ST extends LARVAFirstAgent {
         outbox = session.createReply();
         outbox.setContent("Request execute " + action + " session " + sessionKey);
         this.LARVAsend(outbox);
+        this.myEnergy++;
         session = this.LARVAblockingReceive();
         if (!session.getContent().startsWith("Inform")) {
             Error("Unable to execute action " + action + " due to " + session.getContent());
@@ -214,13 +218,14 @@ public class AT_ST extends LARVAFirstAgent {
         outbox = session.createReply();
         outbox.setContent("Query sensors session " + sessionKey);
         this.LARVAsend(outbox);
+        this.myEnergy++;
         session = this.LARVAblockingReceive();
         if (session.getContent().startsWith("Failure")) {
             Error("Unable to read perceptions due to " + session.getContent());
             return false;
         }
         getEnvironment().setExternalPerceptions(session.getContent());
-//        Info(this.easyPrintPerceptions());
+        Info(this.easyPrintPerceptions());
         return true;
     }
 
@@ -251,7 +256,8 @@ public class AT_ST extends LARVAFirstAgent {
             res += emojis.ROBOT + " " + getEnvironment().getName();
         }
         res += "\n";
-        res += String.format("%10s: %05d W\n", "ENERGY", getEnvironment().getEnergy());
+        res += String.format("%10s: %05d W %05d W %05d W\n", "ENERGY", 
+                getEnvironment().getEnergy(), getEnvironment().getEnergyburnt(), myEnergy);
         res += String.format("%10s: %15s\n", "POSITION", getEnvironment().getGPS().toString());
 //        res += "PAYLOAD "+getEnvironment().getPayload()+" m"+"\n";
         res += String.format("%10s: %05d m\n", "X", getEnvironment().getGPS().getXInt())

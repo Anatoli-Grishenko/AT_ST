@@ -16,7 +16,7 @@ import jade.lang.acl.ACLMessage;
 import tools.emojis;
 import world.Perceptor;
 
-public class STF_REACTIVE extends AT_ST_REACTIVE {
+public class STF_DIRECT_DRIVE extends AT_ST_DIRECTDRIVE {
 
     @Override
     public void setup() {
@@ -31,7 +31,7 @@ public class STF_REACTIVE extends AT_ST_REACTIVE {
 
     }
 
-   @Override
+    @Override
     public Status MyJoinSession() {
         this.DFAddMyServices(new String[]{"TYPE STF"});
         outbox = session.createReply();
@@ -48,7 +48,7 @@ public class STF_REACTIVE extends AT_ST_REACTIVE {
         Info(this.easyPrintPerceptions());
         return Status.SOLVEPROBLEM;
     }
-    
+
     @Override
     protected double U(Environment E, Choice a) {
         if (E.getDistance() > 0
@@ -56,8 +56,7 @@ public class STF_REACTIVE extends AT_ST_REACTIVE {
             if (a.getName().equals("UP")) {
                 return Choice.ANY_VALUE;
             }
-        }
-        if (E.getDistance() == 0 && E.getGround() > 0) {
+        } else if (E.getDistance() == 0 && E.getGround() > 0) {
             if (a.getName().equals("DOWN")) {
                 return Choice.ANY_VALUE;
             }
@@ -65,8 +64,8 @@ public class STF_REACTIVE extends AT_ST_REACTIVE {
             if (E.isFreeFront()) {
                 if (a.getName().equals("MOVE")) {
                     return U(S(E, a));
-                } else if (a.getName().equals("LEFT") || 
-                        a.getName().equals("RIGHT")) {
+                } else if (a.getName().equals("LEFT")
+                        || a.getName().equals("RIGHT")) {
                     return U(S(E, a), new Choice("MOVE"));
                 }
             } else {

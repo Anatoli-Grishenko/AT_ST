@@ -6,20 +6,34 @@
 package casosprácticos;
 
 import Environment.Environment;
-import agents.LARVAFirstAgent;
 import ai.Choice;
 import ai.DecisionSet;
-import console.Console;
-import geometry.Compass;
-import jade.core.AID;
-import jade.lang.acl.ACLMessage;
-import tools.emojis;
-import world.Perceptor;
 
-public class AT_ST_REACTIVE_V3 extends AT_ST_REACTIVE {
+public class AT_ST_BASIC_SURROUND extends AT_ST_DIRECTDRIVE {
 
-    boolean wall = false;
-    double distance = Integer.MAX_VALUE;
+    boolean wall, nextwall;
+    double distance, nextdistance;
+
+    @Override
+    public Status MyJoinSession() {
+        nextwall = wall = false;
+        nextdistance = distance = Choice.MAX_UTILITY;
+        return super.MyJoinSession();
+    }
+
+    @Override
+    protected Choice Ag(Environment E, DecisionSet A) {
+        if (G(E)) {
+            return null;
+        } else if (A.isEmpty()) {
+            return null;
+        } else {
+            A = Prioritize(E, A);
+            wall = nextwall;
+            distance = nextdistance;
+            return A.BestChoice();
+        }
+    }
 
     @Override
     protected double U(Environment E, Choice a) {
@@ -29,9 +43,11 @@ public class AT_ST_REACTIVE_V3 extends AT_ST_REACTIVE {
                     return Choice.ANY_VALUE;
                 }
             } else if (E.isFreeFront()) {
-                if (E.isTargetFrontRight() && E.isFreeFrontRight() && E.getDistance() < distance) {
+                if (E.isTargetRight() && 
+                        E.isFreeFrontRight() && 
+                        E.getDistance() < distance) {
                     if (a.getName().equals("RIGHT")) {
-                        wall = false;
+                        nextwall = false;
                         distance = Integer.MAX_VALUE;
                         return Choice.ANY_VALUE;
                     }
@@ -41,11 +57,7 @@ public class AT_ST_REACTIVE_V3 extends AT_ST_REACTIVE {
                     }
                 }
             } else {
-                if (E.isFreeFrontLeft()) {
-                    if (a.getName().equals("LEFT")) {
-                        return Choice.ANY_VALUE;
-                    }
-                } else if (a.getName().equals("RIGHT")) {
+                if (a.getName().equals("RIGHT")) {
                     return Choice.ANY_VALUE;
                 }
             }
@@ -57,13 +69,19 @@ public class AT_ST_REACTIVE_V3 extends AT_ST_REACTIVE {
             }
         } else {
             if (a.getName().equals("RIGHT")) {
-                wall = true;
-                distance = E.getDistance();
+                nextwall = true;
+                nextdistance = E.getDistance();
                 return Choice.ANY_VALUE;
             }
 
         }
         return Choice.MAX_UTILITY;
+    }
+
+    @Override
+    public String easyPrintPerceptions() {
+        return super.easyPrintPerceptions()
+                + "\nWall:\n" + wall + "\n";
     }
 
 }

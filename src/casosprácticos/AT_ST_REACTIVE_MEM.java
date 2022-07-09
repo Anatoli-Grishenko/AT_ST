@@ -16,7 +16,7 @@ import jade.lang.acl.ACLMessage;
 import tools.emojis;
 import world.Perceptor;
 
-public class AT_ST_REACTIVE_MEM extends AT_ST_REACTIVE {
+public class AT_ST_REACTIVE_MEM extends AT_ST_DIRECTDRIVE {
 
     @Override
     protected double U(Environment E, Choice a) {

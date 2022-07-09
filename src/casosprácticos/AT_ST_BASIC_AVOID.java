@@ -6,17 +6,9 @@
 package casosprácticos;
 
 import Environment.Environment;
-import agents.LARVAFirstAgent;
 import ai.Choice;
-import ai.DecisionSet;
-import console.Console;
-import geometry.Compass;
-import jade.core.AID;
-import jade.lang.acl.ACLMessage;
-import tools.emojis;
-import world.Perceptor;
 
-public class AT_ST_REACTIVE_V2 extends AT_ST_REACTIVE {
+public class AT_ST_BASIC_AVOID extends AT_ST_DIRECTDRIVE {
 
  
     @Override

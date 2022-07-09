@@ -23,7 +23,7 @@ import world.Perceptor;
 
 
 
-public class AT_ST_REACTIVE extends AT_ST {
+public class AT_ST_DIRECTDRIVE extends AT_ST {
 
     @Override
     public void setup() {
@@ -33,7 +33,6 @@ public class AT_ST_REACTIVE extends AT_ST {
                 addChoice(new Choice("MOVE")).
                 addChoice(new Choice("LEFT")).
                 addChoice(new Choice("RIGHT"));
-
     }
 
     @Override

@@ -6,21 +6,34 @@
 package casosprácticos;
 
 import Environment.Environment;
-import agents.LARVAFirstAgent;
 import ai.Choice;
 import ai.DecisionSet;
-import casosprácticos.STF_REACTIVE_V2;
-import console.Console;
-import geometry.Compass;
-import jade.core.AID;
-import jade.lang.acl.ACLMessage;
-import tools.emojis;
-import world.Perceptor;
 
-public class STF_REACTIVE_V3 extends STF_REACTIVE {
+public class STF_BASIC_SURROUND extends STF_DIRECT_DRIVE {
 
-    boolean wall = false;
-    double distance = Integer.MAX_VALUE;
+    boolean wall, nextwall;
+    double distance, nextdistance;
+
+    @Override
+    public Status MyJoinSession() {
+        nextwall = wall = false;
+        nextdistance = distance = Choice.MAX_UTILITY;
+        return super.MyJoinSession();
+    }
+
+    @Override
+    protected Choice Ag(Environment E, DecisionSet A) {
+        if (G(E)) {
+            return null;
+        } else if (A.isEmpty()) {
+            return null;
+        } else {
+            A = Prioritize(E, A);
+            wall = nextwall;
+            distance = nextdistance;
+            return A.BestChoice();
+        }
+    }
 
     @Override
     protected double U(Environment E, Choice a) {
@@ -30,9 +43,11 @@ public class STF_REACTIVE_V3 extends STF_REACTIVE {
                     return Choice.ANY_VALUE;
                 }
             } else if (E.isFreeFront()) {
-                if (E.isTargetFrontRight() && E.isFreeFrontRight() && E.getDistance() < distance) {
+                if (E.isTargetFrontRight() && 
+                        E.isFreeFrontRight() && 
+                        E.getDistance() < distance) {
                     if (a.getName().equals("RIGHT")) {
-                        wall = false;
+                        nextwall = false;
                         distance = Integer.MAX_VALUE;
                         return Choice.ANY_VALUE;
                     }
@@ -42,11 +57,7 @@ public class STF_REACTIVE_V3 extends STF_REACTIVE {
                     }
                 }
             } else {
-                if (E.isFreeFrontLeft()) {
-                    if (a.getName().equals("LEFT")) {
-                        return Choice.ANY_VALUE;
-                    }
-                } else if (a.getName().equals("RIGHT")) {
+                if (a.getName().equals("RIGHT")) {
                     return Choice.ANY_VALUE;
                 }
             }
@@ -55,8 +66,7 @@ public class STF_REACTIVE_V3 extends STF_REACTIVE {
             if (a.getName().equals("UP")) {
                 return Choice.ANY_VALUE;
             }
-        }
-        if (E.getDistance() == 0 && E.getGround() > 0) {
+        } else if (E.getDistance() == 0 && E.getGround() > 0) {
             if (a.getName().equals("DOWN")) {
                 return Choice.ANY_VALUE;
             }
@@ -77,6 +87,12 @@ public class STF_REACTIVE_V3 extends STF_REACTIVE {
             }
         }
         return Choice.MAX_UTILITY;
+    }
+
+    @Override
+    public String easyPrintPerceptions() {
+        return super.easyPrintPerceptions()
+                + "\nWall:\n" + wall + "\n";
     }
 
 }
