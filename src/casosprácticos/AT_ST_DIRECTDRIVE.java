@@ -1,9 +1,11 @@
+package casosprácticos;
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package casosprácticos;
+
 
 import Environment.Environment;
 import agents.LARVAFirstAgent;
@@ -20,9 +22,6 @@ import world.Perceptor;
  *
  * @author lcv
  */
-
-
-
 public class AT_ST_DIRECTDRIVE extends AT_ST {
 
     @Override
@@ -35,13 +34,19 @@ public class AT_ST_DIRECTDRIVE extends AT_ST {
                 addChoice(new Choice("RIGHT"));
     }
 
-    @Override
-    protected double U(Environment E, Choice a) {
+    protected double goAhead(Environment E, Choice a) {
         if (a.getName().equals("MOVE")) {
             return U(S(E, a));
-        } else {
+        } else if (a.getName().equals("LEFT") || a.getName().equals("RIGHT")) {
             return U(S(E, a), new Choice("MOVE"));
         }
+        return Choice.MAX_UTILITY;
+
+    }
+
+    @Override
+    protected double U(Environment E, Choice a) {
+        return goAhead(E, a);
     }
 
     @Override
@@ -59,6 +64,7 @@ public class AT_ST_DIRECTDRIVE extends AT_ST {
             return Status.CLOSEPROBLEM;
         } else {// Execute
             Info("Excuting " + a);
+            System.out.println("Excuting " + a);
             this.MyExecuteAction(a.getName());
             this.MyReadPerceptions();
             Info(this.easyPrintPerceptions());
@@ -71,10 +77,10 @@ public class AT_ST_DIRECTDRIVE extends AT_ST {
     }
 
     @Override
-        public String easyPrintPerceptions() {
+    public String easyPrintPerceptions() {
         this.Prioritize(getEnvironment(), A);
-        return super.easyPrintPerceptions()+ 
-                "\nDECISION SET:\n" + A.toString() + "\n";
+        return super.easyPrintPerceptions()
+                + "\nDECISION SET:\n" + A.toString() + "\n";
     }
 
 }

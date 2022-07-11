@@ -44,38 +44,51 @@ public class STF_DIRECT_DRIVE extends AT_ST_DIRECTDRIVE {
         }
         this.MyReadPerceptions();
         this.openRemote();
-        this.setFrameDelay(100);
+        this.setFrameDelay(10);
         Info(this.easyPrintPerceptions());
         return Status.SOLVEPROBLEM;
+    }
+
+    public double goTakeOff(Environment E, Choice a) {
+        if (a.getName().equals("UP")) {
+            a.setAnnotation(this.myMethod());
+            return Choice.ANY_VALUE;
+        }
+        return Choice.MAX_UTILITY;
+    }
+
+    public double goLanding(Environment E, Choice a) {
+        if (a.getName().equals("DOWN")) {
+            a.setAnnotation(this.myMethod());
+            return Choice.ANY_VALUE;
+        }
+        return Choice.MAX_UTILITY;
+    }
+
+    @Override
+    protected double goAhead(Environment E, Choice a) {
+        if (a.getName().equals("MOVE")) {
+            a.setAnnotation(this.myMethod());
+            return U(S(E, a));
+        } else if (a.getName().equals("LEFT") || a.getName().equals("RIGHT")) {
+            a.setAnnotation(this.myMethod());
+            return U(S(E, a), new Choice("MOVE"));
+        }
+        return Choice.MAX_UTILITY;
+
     }
 
     @Override
     protected double U(Environment E, Choice a) {
         if (E.getDistance() > 0
                 && E.getGPS().getZ() < E.getMaxlevel()) {
-            if (a.getName().equals("UP")) {
-                return Choice.ANY_VALUE;
-            }
+//                && E.getGPS().getZ() < Math.min(E.getVisualFront() + 15, E.getMaxlevel())) {
+            return goTakeOff(E, a);
         } else if (E.getDistance() == 0 && E.getGround() > 0) {
-            if (a.getName().equals("DOWN")) {
-                return Choice.ANY_VALUE;
-            }
+            return goLanding(E, a);
         } else {
-            if (E.isFreeFront()) {
-                if (a.getName().equals("MOVE")) {
-                    return U(S(E, a));
-                } else if (a.getName().equals("LEFT")
-                        || a.getName().equals("RIGHT")) {
-                    return U(S(E, a), new Choice("MOVE"));
-                }
-            } else {
-                if (a.getName().equals("RIGHT")) {
-                    return Choice.ANY_VALUE;
-                }
-
-            }
+            return goAhead(E, a);
         }
-        return Choice.MAX_UTILITY;
     }
 
 }

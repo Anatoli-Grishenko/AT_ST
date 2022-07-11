@@ -9,14 +9,15 @@ import Environment.Environment;
 import ai.Choice;
 import ai.DecisionSet;
 
-public class STF_BASIC_SURROUND extends STF_DIRECT_DRIVE {
+public class STF_BASIC_SURROUND extends STF_BASIC_AVOID {
 
-    boolean wall, nextwall;
+    String whichWall, nextWhichwall;
     double distance, nextdistance;
+
 
     @Override
     public Status MyJoinSession() {
-        nextwall = wall = false;
+        nextWhichwall = whichWall = "NONE";
         nextdistance = distance = Choice.MAX_UTILITY;
         return super.MyJoinSession();
     }
@@ -29,70 +30,93 @@ public class STF_BASIC_SURROUND extends STF_DIRECT_DRIVE {
             return null;
         } else {
             A = Prioritize(E, A);
-            wall = nextwall;
+            whichWall = nextWhichwall;
             distance = nextdistance;
             return A.BestChoice();
         }
     }
 
     @Override
-    protected double U(Environment E, Choice a) {
-        if (wall) {
-            if (E.isFreeFrontLeft()) {
-                if (a.getName().equals("LEFT")) {
-                    return Choice.ANY_VALUE;
-                }
-            } else if (E.isFreeFront()) {
-                if (E.isTargetFrontRight() && 
-                        E.isFreeFrontRight() && 
-                        E.getDistance() < distance) {
-                    if (a.getName().equals("RIGHT")) {
-                        nextwall = false;
-                        distance = Integer.MAX_VALUE;
-                        return Choice.ANY_VALUE;
-                    }
-                } else {
-                    if (a.getName().equals("MOVE")) {
-                        return Choice.ANY_VALUE;
-                    }
-                }
-            } else {
-                if (a.getName().equals("RIGHT")) {
-                    return Choice.ANY_VALUE;
-                }
-            }
-        } else if (E.getDistance() > 0
-                && E.getGPS().getZ() < E.getMaxlevel()) {
-            if (a.getName().equals("UP")) {
-                return Choice.ANY_VALUE;
-            }
-        } else if (E.getDistance() == 0 && E.getGround() > 0) {
-            if (a.getName().equals("DOWN")) {
-                return Choice.ANY_VALUE;
-            }
-        } else {
-            if (E.isFreeFront()) {
-                if (a.getName().equals("MOVE")) {
-                    return U(S(E, a));
-                } else if (a.getName().equals("LEFT") || a.getName().equals("RIGHT")) {
-                    return U(S(E, a), new Choice("MOVE"));
-                }
-            } else {
-                if (a.getName().equals("RIGHT")) {
-                    wall = true;
-                    distance = E.getDistance();
-                    return Choice.ANY_VALUE;
-                }
-
-            }
+    public double goAvoid(Environment E, Choice a) {
+        if (a.getName().equals("RIGHT")) {
+            nextWhichwall = "LEFT";
+            nextdistance = E.getDistance();
+            a.setAnnotation(this.myMethod());
+            return Choice.ANY_VALUE;
         }
         return Choice.MAX_UTILITY;
+    }
+
+    public double goKeepOnWall(Environment E, Choice a) {
+        if (a.getName().equals("MOVE")) {
+            a.setAnnotation(this.myMethod());
+            return Choice.ANY_VALUE;
+        }
+        return Choice.MAX_UTILITY;
+    }
+
+    public double goTurnOnWallLeft(Environment E, Choice a) {
+        if (a.getName().equals("LEFT")) {
+            a.setAnnotation(this.myMethod());
+            return Choice.ANY_VALUE;
+        }
+        return Choice.MAX_UTILITY;
+
+    }
+
+    public double goRevolveWallLeft(Environment E, Choice a) {
+        if (a.getName().equals("RIGHT")) {
+            a.setAnnotation(this.myMethod());
+            return Choice.ANY_VALUE;
+        }
+        return Choice.MAX_UTILITY;
+    }
+
+    public double goStopWallLeft(Environment E, Choice a) {
+        if (a.getName().equals("RIGHT")) {
+            nextWhichwall = "NONE";
+            distance = Integer.MAX_VALUE;
+            a.setAnnotation(this.myMethod());
+            return Choice.ANY_VALUE;
+        }
+        return Choice.MAX_UTILITY;
+    }
+
+    public double goFollowWallLeft(Environment E, Choice a) {
+        if (E.isFreeFrontLeft()) {
+            return goTurnOnWallLeft(E, a);
+        } else if (E.isTargetFrontRight()
+                && E.isFreeFrontRight()
+                && E.getDistance() < distance) {
+            return goStopWallLeft(E, a);
+        } else if (E.isFreeFront()) {
+            return goKeepOnWall(E, a);
+        } else {
+            return goRevolveWallLeft(E, a);
+        }
+    }
+
+    @Override
+    protected double U(Environment E, Choice a) {
+        if (E.getDistance() > 0
+                && E.getGPS().getZ() < E.getMaxlevel()) {
+//                && E.getGPS().getZ() < Math.min(E.getVisualFront() + 15, E.getMaxlevel())) {
+            return goTakeOff(E, a);
+        } else if (E.getDistance() == 0 && E.getGround() > 0) {
+            return goLanding(E, a);
+        } else if (whichWall.equals("LEFT")) {
+            return goFollowWallLeft(E, a);
+        } else if (!E.isFreeFront()) {
+            return goAvoid(E, a);
+        } else {
+            return goAhead(E, a);
+        }
     }
 
     @Override
     public String easyPrintPerceptions() {
         return super.easyPrintPerceptions()
-                + "\nWall:\n" + wall + "\n";
+                + "\nWall:\n" + whichWall + "\n";
     }
 
 }

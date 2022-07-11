@@ -1,9 +1,11 @@
+package casosprácticos;
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package casosprácticos;
+
 
 import agents.LARVAFirstAgent;
 import jade.core.AID;
@@ -32,10 +34,11 @@ public class AT_ST extends LARVAFirstAgent {
     @Override
     public void setup() {
         super.setup();
+        logger.offEcho();
         logger.onTabular();
         myStatus = Status.START;
         this.setupEnvironment();
-        this.setFrameDelay(100);
+        this.setFrameDelay(10);
         actions = new String[]{
             "LEFT",
             "RIGHT",
@@ -57,9 +60,10 @@ public class AT_ST extends LARVAFirstAgent {
             "SandboxHalfmoon1",
             "SandboxHalfmoon1Inv",
             "SandboxHalfmoon3",
-            "SandboxIndonesia",
+            "SandboxDagobah",
             "SandboxIndonesiaFlatNW",
-            "SandboxIndonesiaFlatN"
+            "SandboxIndonesiaFlatN",
+            "SandboxEndor"
         };
     }
 
@@ -256,7 +260,7 @@ public class AT_ST extends LARVAFirstAgent {
             res += emojis.ROBOT + " " + getEnvironment().getName();
         }
         res += "\n";
-        res += String.format("%10s: %05d W %05d W %05d W\n", "ENERGY", 
+        res += String.format("%10s: %05d W %05d W %05d W\n", "ENERGY",
                 getEnvironment().getEnergy(), getEnvironment().getEnergyburnt(), myEnergy);
         res += String.format("%10s: %15s\n", "POSITION", getEnvironment().getGPS().toString());
 //        res += "PAYLOAD "+getEnvironment().getPayload()+" m"+"\n";
@@ -332,7 +336,7 @@ public class AT_ST extends LARVAFirstAgent {
         return res;
     }
 
-    String printValue(int v) {
+    protected String printValue(int v) {
         if (v == Perceptor.NULLREAD) {
             return "XXX ";
         } else {
@@ -340,7 +344,7 @@ public class AT_ST extends LARVAFirstAgent {
         }
     }
 
-    String printValue(double v) {
+    protected String printValue(double v) {
         if (v == Perceptor.NULLREAD) {
             return "XXX ";
         } else {
@@ -348,4 +352,7 @@ public class AT_ST extends LARVAFirstAgent {
         }
     }
 
+    public String myMethod() {
+        return Thread.currentThread().getStackTrace()[2].getMethodName();
+    }
 }
