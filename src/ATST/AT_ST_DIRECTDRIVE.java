@@ -1,20 +1,22 @@
-package casosprácticos;
+package ATST;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
-
 import Environment.Environment;
 import agents.LARVAFirstAgent;
 import ai.Choice;
 import ai.DecisionSet;
 import console.Console;
+import data.Transform;
 import geometry.Compass;
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
+import java.util.ArrayList;
+import tools.TimeHandler;
 import tools.emojis;
 import world.Perceptor;
 
@@ -23,7 +25,7 @@ import world.Perceptor;
  * @author lcv
  */
 public class AT_ST_DIRECTDRIVE extends AT_ST {
-
+    
     @Override
     public void setup() {
         super.setup();
@@ -64,7 +66,8 @@ public class AT_ST_DIRECTDRIVE extends AT_ST {
             return Status.CLOSEPROBLEM;
         } else {// Execute
             Info("Excuting " + a);
-            System.out.println("Excuting " + a);
+//            System.out.println("Alternatives " + A.toString());
+//            System.out.println("Excuting " + a);
             this.MyExecuteAction(a.getName());
             this.MyReadPerceptions();
             Info(this.easyPrintPerceptions());

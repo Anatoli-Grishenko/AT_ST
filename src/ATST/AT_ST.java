@@ -1,12 +1,11 @@
-package casosprácticos;
+package ATST;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
-
+import agents.DroidStarship;
 import agents.LARVAFirstAgent;
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
@@ -30,11 +29,13 @@ public class AT_ST extends LARVAFirstAgent {
     protected String[] contentTokens;
     protected String action = "", preplan = "";
     protected int indexplan = 0, myEnergy = 0;
+    protected boolean showPerceptions, useAlias=false;
 
     @Override
     public void setup() {
         super.setup();
-        logger.offEcho();
+//        logger.offEcho();
+        showPerceptions = false;
         logger.onTabular();
         myStatus = Status.START;
         this.setupEnvironment();
@@ -60,7 +61,14 @@ public class AT_ST extends LARVAFirstAgent {
             "SandboxHalfmoon1",
             "SandboxHalfmoon1Inv",
             "SandboxHalfmoon3",
-            "SandboxDagobah",
+            "SandboxDagobah-A",
+            "SandboxDagobah-B",
+            "SandboxDagobah-C",
+            "SandboxDagobah-D",
+            "SandboxTatooine-A",
+            "SandboxTatooine-B",
+            "SandboxTatooine-C",
+            "SandboxTatooine-D",
             "SandboxIndonesiaFlatNW",
             "SandboxIndonesiaFlatN",
             "SandboxEndor"
@@ -102,7 +110,8 @@ public class AT_ST extends LARVAFirstAgent {
     @Override
     public void takeDown() {
         Info("Taking down...");
-        this.saveSequenceDiagram("./" + getLocalName() + ".seqd");
+//        this.saveSequenceDiagram("./" + getLocalName() + ".seqd");
+        this.closeRemote();
         super.takeDown();
     }
 
@@ -252,6 +261,8 @@ public class AT_ST extends LARVAFirstAgent {
             Error("Environment is unacessible, please setupEnvironment() first");
             return "";
         }
+        if (!showPerceptions)
+            return "";
         res = "\n\nReading of sensors\n";
         if (getEnvironment().getName() == null) {
             res += emojis.WARNING + " UNKNOWN AGENT";
@@ -354,5 +365,17 @@ public class AT_ST extends LARVAFirstAgent {
 
     public String myMethod() {
         return Thread.currentThread().getStackTrace()[2].getMethodName();
+    }
+
+    protected Status doQueryCities() {
+        Info("Querying CITIES");
+        outbox = new ACLMessage();
+        outbox.setSender(this.getAID());;
+        outbox.addReceiver(new AID(sessionManager, AID.ISLOCALNAME));
+        outbox.setContent("Query CITIES session " + sessionKey);
+        this.LARVAsend(outbox);
+        session = LARVAblockingReceive();
+        E.setExternalPerceptions(session.getContent());
+        return myStatus;
     }
 }

@@ -1,4 +1,4 @@
-package casosprácticos;
+package ATST;
 
 /*
  * To change this license header, choose License Headers in Project Properties.

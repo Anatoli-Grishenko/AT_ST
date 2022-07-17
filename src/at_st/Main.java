@@ -1,16 +1,17 @@
 package at_st;
 
+import ATST.AT_ST_BASIC_AVOID;
+import ATST.AT_ST_BASIC_SURROUND;
+import ATST.AT_ST_DELIBERATIVE;
+import ATST.AT_ST_DIRECTDRIVE;
+import ATST.AT_ST_FULL;
+import STF.STF_BASIC_AVOID;
+import STF.STF_BASIC_SURROUND;
+import STF.STF_DELIBERATIVE;
+import STF.STF_DIRECT_DRIVE;
+import STF.STF_FULL;
 import appboot.LARVABoot;
-import casosprácticos.AT_ST_BASIC_AVOID;
-import casosprácticos.AT_ST_BASIC_SURROUND;
-import casosprácticos.AT_ST_DELIBERATIVE;
-import casosprácticos.AT_ST_DIRECTDRIVE;
-import casosprácticos.AT_ST_FULL;
-import casosprácticos.STF_BASIC_AVOID;
-import casosprácticos.STF_BASIC_SURROUND;
-import casosprácticos.STF_DELIBERATIVE;
-import casosprácticos.STF_DIRECT_DRIVE;
-import casosprácticos.STF_FULL;
+
 
 public class Main {
 
