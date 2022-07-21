@@ -7,6 +7,7 @@ package ATST;
  */
 import agents.DroidStarship;
 import agents.LARVAFirstAgent;
+import data.Transform;
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
 import tools.emojis;
@@ -29,7 +30,7 @@ public class AT_ST extends LARVAFirstAgent {
     protected String[] contentTokens;
     protected String action = "", preplan = "";
     protected int indexplan = 0, myEnergy = 0;
-    protected boolean showPerceptions, useAlias=false;
+    protected boolean showPerceptions, useAlias = false;
 
     @Override
     public void setup() {
@@ -71,7 +72,11 @@ public class AT_ST extends LARVAFirstAgent {
             "SandboxTatooine-D",
             "SandboxIndonesiaFlatNW",
             "SandboxIndonesiaFlatN",
-            "SandboxEndor"
+            "SandboxEndor",
+            "Dagobah",
+            "Tatooine",
+            "Wobani",
+            "Zeffo"
         };
     }
 
@@ -261,8 +266,9 @@ public class AT_ST extends LARVAFirstAgent {
             Error("Environment is unacessible, please setupEnvironment() first");
             return "";
         }
-        if (!showPerceptions)
+        if (!showPerceptions) {
             return "";
+        }
         res = "\n\nReading of sensors\n";
         if (getEnvironment().getName() == null) {
             res += emojis.WARNING + " UNKNOWN AGENT";
@@ -373,6 +379,16 @@ public class AT_ST extends LARVAFirstAgent {
         outbox.setSender(this.getAID());;
         outbox.addReceiver(new AID(sessionManager, AID.ISLOCALNAME));
         outbox.setContent("Query CITIES session " + sessionKey);
+        this.LARVAsend(outbox);
+        session = LARVAblockingReceive();
+        E.setExternalPerceptions(session.getContent());
+        return myStatus;
+    }
+
+    protected Status doQueryPeople(String type) {
+        Info("Querying people "+type);
+        outbox = session.createReply();
+        outbox.setContent("Query "+type.toUpperCase()+" session " + sessionKey);
         this.LARVAsend(outbox);
         session = LARVAblockingReceive();
         E.setExternalPerceptions(session.getContent());

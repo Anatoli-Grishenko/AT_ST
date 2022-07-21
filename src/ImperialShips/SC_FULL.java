@@ -1,4 +1,4 @@
-package ITT;
+package ImperialShips;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -7,19 +7,16 @@ package ITT;
  */
 import ATST.AT_ST_FULL;
 import ai.Choice;
-import master.MASTER_DRIVE_GROUND;
 
-public class ITT_FULL extends MASTER_DRIVE_GROUND {
+public class SC_FULL extends MASTER_DRIVE_GROUND {
 
 //    @Override
 //    public Status MyJoinSession() {
 //        nextWhichwall = whichWall = "NONE";
 //        nextdistance = distance = Choice.MAX_UTILITY;
-//        this.DFAddMyServices(new String[]{"TYPE ITT"});
-//        this.doQueryCities();
+//        this.DFAddMyServices(new String[]{"TYPE SC"});
 //        outbox = session.createReply();
-//        outbox.setContent("Request join session " + sessionKey+ " in "+
-//                E.getCityList()[(int)(Math.random()*E.getCityList().length)]);
+//        outbox.setContent("Request join session " + sessionKey);
 //        this.LARVAsend(outbox);
 //        session = this.LARVAblockingReceive();
 //        if (!session.getContent().startsWith("Confirm")) {

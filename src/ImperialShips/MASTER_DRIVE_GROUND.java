@@ -1,26 +1,16 @@
-package master;
+package ImperialShips;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 import ATST.AT_ST_FULL;
-import Environment.Environment;
-import agents.LARVAFirstAgent;
 import ai.Choice;
-import ai.DecisionSet;
-import console.Console;
-import data.Transform;
-import geometry.Compass;
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
-import jade.lang.acl.MessageTemplate;
 import java.util.ArrayList;
 import tools.TimeHandler;
-import tools.emojis;
-import world.Perceptor;
 
 /**
  *
@@ -61,12 +51,12 @@ public class MASTER_DRIVE_GROUND extends AT_ST_FULL {
 
    ///////////////////////////////////////////////
     @Override
-    protected String activateTask() {
+    protected String activateNextTask() {
         String parameters[];
         if (this.isOverCurrentMission()) {
             return Status.CLOSEPROBLEM.name();
         }
-        setTask();
+        nextTask();
         parameters = taskName.split(" ");
         if (parameters[0].equals("MOVEIN")) {
             outbox = session.createReply();
