@@ -8,6 +8,7 @@ package ImperialShips;
 import ATST.AT_ST;
 import ATST.AT_ST_DIRECTDRIVE;
 import Environment.Environment;
+import STF.STF_DELIBERATIVE;
 import STF.STF_FULL;
 import agents.LARVAFirstAgent;
 import ai.Choice;
@@ -17,15 +18,19 @@ import static crypto.Keygen.getHexaKey;
 import data.Transform;
 import geometry.Compass;
 import geometry.Point3D;
+import static glossary.Goals.CAPTURE;
+import static glossary.Goals.INFORM;
+import static glossary.Goals.LIST;
+import static glossary.Goals.MOVEIN;
 import static glossary.Goals.MOVETO;
-import static glossary.Mission.CAPTURE;
-import static glossary.Mission.MOVEIN;
-import static glossary.Mission.RECRUIT;
+import static glossary.Goals.RECRUIT;
+import static glossary.Goals.REPORT;
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import messaging.ACLMessageTools;
 import tools.TimeHandler;
 import tools.emojis;
@@ -40,13 +45,15 @@ public class MASTER_DRIVE_AIRBORNE extends STF_FULL {
     protected String myType;
     protected boolean recruitByCFP, recruitByREQUEST, retryRecruitment, AUTO = false;
     protected String cities[], baseCity, myReplyWith;
-    protected ArrayList<String> knownAgents;
+    protected HashMap<String, ArrayList<String>> census;
+//    protected ArrayList<String> knownAgents;
 
     @Override
     public void setup() {
         super.setup();
         useAlias = true;
-        knownAgents = new ArrayList();
+        census = new HashMap();
+//        knownAgents = new ArrayList();
     }
 
     @Override
@@ -139,7 +146,7 @@ public class MASTER_DRIVE_AIRBORNE extends STF_FULL {
         Info("Checking list of cities with " + sessionManager);
         this.doQueryCities();
         if (!AUTO) {
-            String city = this.inputSelect("Please select a city to9start from",
+            String city = this.inputSelect("Please select a city to start from",
                     E.getCityList(), "");
             if (city == null) {
                 return Status.CLOSEPROBLEM;
@@ -161,6 +168,7 @@ public class MASTER_DRIVE_AIRBORNE extends STF_FULL {
             this.setFrameDelay(10);
             Info(this.easyPrintPerceptions());
             String m = chooseMission();
+            census.clear();
             return translateStatus(activateMission(m));
         } else {
             if (sessionKey.length() == 0) {
@@ -177,7 +185,8 @@ public class MASTER_DRIVE_AIRBORNE extends STF_FULL {
             outbox = session.createReply();
             outbox.setContent("Request join session " + sessionKey + " in " + baseCity);
             LARVAsend(outbox);
-             if (!session.getContent().toUpperCase().startsWith("CONFIRM")) {
+            session = LARVAblockingReceive();
+            if (!session.getContent().toUpperCase().startsWith("CONFIRM")) {
                 Error("Could not join session " + sessionKey + " due to " + session.getContent());
                 return Status.CHECKOUT;
             }
@@ -186,6 +195,7 @@ public class MASTER_DRIVE_AIRBORNE extends STF_FULL {
 //        this.openRemote();
             this.setFrameDelay(10);
             Info(this.easyPrintPerceptions());
+            census.clear();
             String m = chooseMission();
             return translateStatus(activateMission(m));
         }
@@ -205,6 +215,7 @@ public class MASTER_DRIVE_AIRBORNE extends STF_FULL {
                 Info("Moving on to the next task");
                 nextWhichwall = whichWall = "NONE";
                 nextdistance = distance = Choice.MAX_UTILITY;
+                census.clear();
                 return translateStatus(activateNextTask());
             }
         }
@@ -225,9 +236,10 @@ public class MASTER_DRIVE_AIRBORNE extends STF_FULL {
             }
             return Status.SOLVEPROBLEM;
         }
-    }
-    ///////////////////////////////////////////////
 
+    }
+
+    ///////////////////////////////////////////////
     @Override
     protected String activateNextTask() {
         String parameters[];
@@ -281,6 +293,36 @@ public class MASTER_DRIVE_AIRBORNE extends STF_FULL {
                 Info("Failed to capture " + who);
                 return Status.CLOSEPROBLEM.name();
             }
+        } else if (parameters[0].equals(LIST.name())) {
+            String where = E.getCurrentCity();
+            this.doQueryPeople(parameters[1]);
+            if (census.get(where) == null) {
+                census.put(where, new ArrayList());
+            }
+            census.get(where).addAll(new ArrayList(Transform.toArrayList(E.getPeople())));
+            Message("Found " + E.getPeople().length + " " + parameters[1]);
+            return activateNextTask();
+        } else if (parameters[0].equals(REPORT.name())) {
+            String type = "DEST";
+            ArrayList<String> typelist = this.DFGetAllProvidersOf("TYPE " + type);
+            if (typelist.isEmpty()) {
+                Message("I have not found any DESTROYER to report to");
+                return activateNextTask();
+            }
+            String destName = typelist.get(0), destCity = "";
+            String transponder = this.doTranspond(destName), transpondtokens[] = transponder.split(";");
+            for (String stra : transpondtokens) {
+                if (stra.startsWith("GROUND")) {
+                    destCity = stra.split(" ")[1];
+                }
+            }
+            if (destCity.length() == 0) {
+                Message("Agent " + destName + " is not grounded");
+                return activateNextTask();
+            }
+            this.defMission("REPORT", new String[]{"MOVEIN "+destCity, "INFORM "+destName});
+            this.activateMission("REPORT");
+            return Status.SOLVEPROBLEM.name();
         } else if (parameters[0].equals(RECRUIT.name())) {
             String myCity = getEnvironment().getCurrentCity();
             if (this.recruitByCFP) {
@@ -288,6 +330,14 @@ public class MASTER_DRIVE_AIRBORNE extends STF_FULL {
             } else if (this.recruitByREQUEST) {
                 this.REQUESTDroids("MOVEIN " + myCity, "BYDISTANCE");
             }
+            return activateNextTask();
+        } else if (parameters[0].equals(INFORM.name())) {
+            String who = parameters[1], what = parameters[2];
+            outbox = new ACLMessage(ACLMessage.INFORM);
+            outbox.setSender(getAID());
+            outbox.addReceiver(new AID(who, AID.ISLOCALNAME));
+            outbox.setContent("REPORT" + this.census.size() + " individuals");
+            this.LARVAsend(outbox);
             return activateNextTask();
         } else {
             return Status.CLOSEPROBLEM.name();
@@ -465,23 +515,37 @@ public class MASTER_DRIVE_AIRBORNE extends STF_FULL {
         }
     }
 
+    public String doTranspond(String agentName) {
+        if (this.AMSIsConnected(agentName)) {
+            outbox = new ACLMessage();
+            outbox.setSender(getAID());
+            outbox.addReceiver(new AID(agentName, AID.ISLOCALNAME));
+            outbox.setContent("TRANSPOND");
+            this.LARVAsend(outbox);
+            inbox = LARVAblockingReceive();
+            return inbox.getContent();
+        }
+        return "";
+    }
+
     protected boolean isUnexpected(ACLMessage msg) {
-        if (!knownAgents.contains(msg.getSender().getLocalName())) {
-            if (this.DFHasService(msg.getSender().getLocalName(), "SESSION MANAGER")) {
-                knownAgents.add(msg.getSender().getLocalName());
-            }
-        }
-        return !knownAgents.contains(msg.getSender().getLocalName());
+//        if (!knownAgents.contains(msg.getSender().getLocalName())) {
+//            if (this.DFHasService(msg.getSender().getLocalName(), "SESSION MANAGER")) {
+//                knownAgents.add(msg.getSender().getLocalName());
+//            }
+//        }
+//        return !knownAgents.contains(msg.getSender().getLocalName());
+        return msg.getContent().equals("TRANSPOND");
     }
 
-    @Override
-    protected void LARVAsend(ACLMessage msg) {
-        for (String s: ACLMessageTools.getAllReceivers(msg).split(",")) {
-            knownAgents.add(s);
-        }
-        super.LARVAsend(msg);
-    }
-
+//    @Override
+//    protected void LARVAsend(ACLMessage msg) {
+//        for (String s: ACLMessageTools.getAllReceivers(msg).split(",")) {
+//            knownAgents.add(s);
+//        }
+//        super.LARVAsend(msg);
+//    }
+//
     @Override
     protected ACLMessage LARVAblockingReceive() {
         ACLMessage res;
@@ -517,9 +581,9 @@ public class MASTER_DRIVE_AIRBORNE extends STF_FULL {
         logger.onEcho();
         String tokens[] = msg.getContent().split(",")[0].split(" ");
         Info("Unexpected " + msg.getContent());
-        if (tokens[0].toUpperCase().equals("TRANSPONDER")) {
+        if (tokens[0].toUpperCase().equals("TRANSPOND")) {
             outbox = msg.createReply();
-            outbox.setContent("GPS " + getEnvironment().getGPS().toString());
+            outbox.setContent(Transponder());
             this.LARVAsend(outbox);
         } else {
             Message("Refuse to " + msg.getContent());

@@ -19,7 +19,7 @@ public class TS_FULL extends MASTER_DRIVE_AIRBORNE {
         super.setup();
         myType = "TS";
         useAlias = true;
-        logger.offEcho();
+        logger.onEcho();
         this.setFrameDelay(10);
 //        this.closeRemote();
         this.openRemote();
