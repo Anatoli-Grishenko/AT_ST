@@ -14,9 +14,9 @@ import tools.emojis;
 
 public class STF_DELIBERATIVE extends STF_FULL {
 
-    Plan behaviour = null;
-    Environment Ei, Ef;
-    Choice a;
+    protected Plan behaviour = null;
+    protected Environment Ei, Ef;
+    protected Choice a;
 
     protected Plan AgPlan(Environment E, DecisionSet A) {
         Plan result;

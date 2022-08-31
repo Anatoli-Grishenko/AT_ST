@@ -12,6 +12,7 @@ import jade.core.AID;
 import jade.lang.acl.ACLMessage;
 
 public class AT_ST_FULL extends AT_ST_BASIC_SURROUND {
+    protected double minimumEnergy = 20; // Percepntage
 
     @Override
     public void setup() {
@@ -27,28 +28,7 @@ public class AT_ST_FULL extends AT_ST_BASIC_SURROUND {
                 addChoice(new Choice("RIGHT"));
     }
 
-//    @Override
-//    public double goAvoid(Environment E, Choice a) {
-//        if (E.isTargetLeft()) {
-//            if (a.getName().equals("LEFT")) {
-//                nextWhichwall = "RIGHT";
-//                nextdistance = E.getDistance();
-//                a.setAnnotation(this.myMethod());
-//
-//                return Choice.ANY_VALUE;
-//            }
-//        } else if (E.isTargetRight()) {
-//            if (a.getName().equals("RIGHT")) {
-//                nextWhichwall = "LEFT";
-//                nextdistance = E.getDistance();
-//                a.setAnnotation(this.myMethod());
-//
-//                return Choice.ANY_VALUE;
-//            }
-//        }
-//        return Choice.MAX_UTILITY;
-//
-//    }
+
 //
     public double goTurnOnWallRight(Environment E, Choice a) {
         if (a.getName().equals("RIGHT")) {
@@ -62,8 +42,7 @@ public class AT_ST_FULL extends AT_ST_BASIC_SURROUND {
 
     public double goStopWallRight(Environment E, Choice a) {
         if (a.getName().equals("LEFT")) {
-            nextWhichwall = "NONE";
-            distance = Integer.MAX_VALUE;
+            this.resetAutoNAV();
             a.setAnnotation(this.myMethod());
 
             return Choice.ANY_VALUE;
@@ -81,12 +60,14 @@ public class AT_ST_FULL extends AT_ST_BASIC_SURROUND {
     }
 
     public double goFollowWallRight(Environment E, Choice a) {
-        if (E.isTargetLeft()
-                && E.isFreeFrontLeft()
-                && E.getDistance() < distance) {
-            return goStopWallRight(E, a);
-        } else if (E.isFreeFrontRight()) {
+      if (E.isFreeFrontRight()) {
             return goTurnOnWallRight(E, a);
+        } else if (E.isTargetLeft()
+                && E.isFreeFrontLeft()
+                && //E.getDistance() < distance
+                E.getDistance() < point.planeDistanceTo(E.getTarget())) {
+
+            return goStopWallRight(E, a);
         } else if (E.isFreeFront()) {
             return goKeepOnWall(E, a);
         } else {
@@ -136,6 +117,7 @@ public class AT_ST_FULL extends AT_ST_BASIC_SURROUND {
             if (a.getName().equals("LEFT")) {
                 nextWhichwall = "RIGHT";
                 nextdistance = E.getDistance();
+                nextPoint = E.getGPS();
                 a.setAnnotation(this.myMethod());
 
                 return Choice.ANY_VALUE;
@@ -144,6 +126,7 @@ public class AT_ST_FULL extends AT_ST_BASIC_SURROUND {
             if (a.getName().equals("RIGHT")) {
                 nextWhichwall = "LEFT";
                 nextdistance = E.getDistance();
+                nextPoint = E.getGPS();
                 a.setAnnotation(this.myMethod());
 
                 return Choice.ANY_VALUE;
@@ -153,7 +136,14 @@ public class AT_ST_FULL extends AT_ST_BASIC_SURROUND {
 
     }
 
-    
+       protected Choice goRevolve(Environment E) {
+        nextWhichwall = "LEFT";
+        nextdistance = E.getDistance();
+        nextPoint = E.getGPS();
+        Choice a = new Choice("RIGHT");
+        a.setAnnotation(this.myMethod());
+        return a;
+    }
     @Override
     protected double U(Environment E, Choice a) {
         if (E.getEnergy() * 100 / E.getAutonomy() < 10) {
@@ -162,31 +152,19 @@ public class AT_ST_FULL extends AT_ST_BASIC_SURROUND {
             return goFollowWall(E, a);
         } else if (E.isTargetBack()) {
             return goTurnBack(E, a);
-        } else if (!E.isFreeFront() &&
-                (S(E, new Choice("MOVE")).getDistance() < S(S(E, new Choice("LEFT")), new Choice("MOVE")).getDistance() &&
-                S(E, new Choice("MOVE")).getDistance() < S(S(E, new Choice("RIGHT")), new Choice("MOVE")).getDistance()) 
-//                ||!Ve(S(E, new Choice("MOVE")))
-                ) {
-            return goAvoid(E, a);
+        }  else if (!E.isFreeFront()) {
+            if (S(E, new Choice("MOVE")).getDistance() < S(S(E, new Choice("LEFT")), new Choice("MOVE")).getDistance()
+                    && S(E, new Choice("MOVE")).getDistance() < S(S(E, new Choice("RIGHT")), new Choice("MOVE")).getDistance() //                ||!Ve(S(E, new Choice("MOVE")))
+                    ) {
+                return goAvoid(E, a);
+            } else {
+                return goAvoid(E, a);
+            }
         } else {
             return goAhead(E, a);
         }
-    }
-    
-//    @Override
-//    protected double U(Environment E, Choice a) {
-//        if (E.getEnergy() * 100 / E.getAutonomy() < 10) {
-//            return goLowEnergy(E, a);
-//        } else if (!whichWall.equals("NONE")) {
-//            return goFollowWall(E, a);
-//        } else if (E.isTargetBack()) {
-//            return goTurnBack(E, a);
-//        } else if (!E.isFreeFront()) {
-//            return goAvoid(E, a);
-//        } else {
-//            return goAhead(E, a);
-//        }
-//    }
+    }    
+
 
     @Override
     public Status MyOpenProblem() {
@@ -226,70 +204,3 @@ public class AT_ST_FULL extends AT_ST_BASIC_SURROUND {
         }
     }
 }
-
-//        if (a.getName().equals("RECHARGE")) {
-//            if (E.getEnergy() * 100 / E.getAutonomy() < 10) {
-//                return -Choice.ANY_VALUE;
-//            } else {
-//                return Choice.MAX_UTILITY;
-//            }
-//        } 
-//
-//    protected double UWallRight(Environment E, Choice a) {
-//        if (E.isFreeFrontRight()) {
-//            if (a.getName().equals("RIGHT")) {
-//                return Choice.ANY_VALUE;
-//            }
-//        } else if (E.isFreeFront()) {
-//            if (E.isTargetFrontLeft() && E.isFreeFrontLeft() && E.getDistance() < distance) {
-//                if (a.getName().equals("LEFT")) {
-//                    nextwall = "NONE";
-//                    nextdistance = Integer.MAX_VALUE;
-//                    return Choice.ANY_VALUE;
-//                }
-//            } else {
-//                if (a.getName().equals("MOVE")) {
-//                    return Choice.ANY_VALUE;
-//                }
-//            }
-//        } else {
-//            if (a.getName().equals("LEFT")) {
-//                return Choice.ANY_VALUE;
-//            }
-//        }
-//        return Choice.MAX_UTILITY;
-//    }
-//
-//    protected double UWallLeft(Environment E, Choice a) {
-//        if (E.isFreeFrontLeft()) {
-//            if (a.getName().equals("LEFT")) {
-//                return Choice.ANY_VALUE;
-//            }
-//        } else if (E.isFreeFront()) {
-//            if (E.isTargetFrontRight() && E.isFreeFrontRight() && E.getDistance() < distance) {
-//                if (a.getName().equals("RIGHT")) {
-//                    nextwall = "NONE";
-//                    nextdistance = Integer.MAX_VALUE;
-//                    return Choice.ANY_VALUE;
-//                }
-//            } else {
-//                if (a.getName().equals("MOVE")) {
-//                    return Choice.ANY_VALUE;
-//                }
-//            }
-//        } else {
-//            if (a.getName().equals("RIGHT")) {
-//                return Choice.ANY_VALUE;
-//            }
-//        }
-//        return Choice.MAX_UTILITY;
-//    }
-//
-//    protected double UFollowWall(Environment E, Choice a) {
-//        if (wall.equals("LEFT")) {
-//            return UWallLeft(E, a);
-//        } else if (wall.equals("RIGHT")) {
-//            return UWallRight(E, a);
-//        }
-//        return Choice.MAX_UTILITY;
-//    }

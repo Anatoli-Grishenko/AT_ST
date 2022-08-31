@@ -8,17 +8,18 @@ package STF;
 import Environment.Environment;
 import ai.Choice;
 import ai.DecisionSet;
+import geometry.Point3D;
 
 public class STF_BASIC_SURROUND extends STF_BASIC_AVOID {
 
     protected String whichWall, nextWhichwall;
     protected double distance, nextdistance;
+    protected Point3D point, nextPoint;
 
 
     @Override
     public Status MyJoinSession() {
-        nextWhichwall = whichWall = "NONE";
-        nextdistance = distance = Choice.MAX_UTILITY;
+        this.resetAutoNAV();
         return super.MyJoinSession();
     }
 
@@ -32,6 +33,7 @@ public class STF_BASIC_SURROUND extends STF_BASIC_AVOID {
             A = Prioritize(E, A);
             whichWall = nextWhichwall;
             distance = nextdistance;
+            point=nextPoint;
             return A.BestChoice();
         }
     }
@@ -41,6 +43,7 @@ public class STF_BASIC_SURROUND extends STF_BASIC_AVOID {
         if (a.getName().equals("RIGHT")) {
             nextWhichwall = "LEFT";
             nextdistance = E.getDistance();
+            nextPoint=E.getGPS();
             a.setAnnotation(this.myMethod());
             return Choice.ANY_VALUE;
         }
@@ -74,8 +77,7 @@ public class STF_BASIC_SURROUND extends STF_BASIC_AVOID {
 
     public double goStopWallLeft(Environment E, Choice a) {
         if (a.getName().equals("RIGHT")) {
-            nextWhichwall = "NONE";
-            distance = Integer.MAX_VALUE;
+            this.resetAutoNAV();
             a.setAnnotation(this.myMethod());
             return Choice.ANY_VALUE;
         }
@@ -87,7 +89,9 @@ public class STF_BASIC_SURROUND extends STF_BASIC_AVOID {
             return goTurnOnWallLeft(E, a);
         } else if (E.isTargetFrontRight()
                 && E.isFreeFrontRight()
-                && E.getDistance() < distance) {
+                && //E.getDistance() < distance
+                    E.getDistance() < point.planeDistanceTo(E.getTarget())
+                ) {
             return goStopWallLeft(E, a);
         } else if (E.isFreeFront()) {
             return goKeepOnWall(E, a);
@@ -115,8 +119,20 @@ public class STF_BASIC_SURROUND extends STF_BASIC_AVOID {
 
     @Override
     public String easyPrintPerceptions() {
+        if (!showPerceptions) {
+            return "";
+        }
         return super.easyPrintPerceptions()
                 + "\nWall:\n" + whichWall + "\n";
     }
+    public void resetAutoNAV() {
+//        nextWhichwall = "NONE";
+//        nextdistance =   Choice.MAX_UTILITY;
+//        nextPoint=null;
+        nextWhichwall = whichWall = "NONE";
+        nextdistance = distance = Choice.MAX_UTILITY;
+        nextPoint=point=null;
+    }
+
 
 }

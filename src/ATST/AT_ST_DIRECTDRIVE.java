@@ -81,6 +81,9 @@ public class AT_ST_DIRECTDRIVE extends AT_ST {
 
     @Override
     public String easyPrintPerceptions() {
+        if (!showPerceptions) {
+            return "";
+        }
         this.Prioritize(getEnvironment(), A);
         return super.easyPrintPerceptions()
                 + "\nDECISION SET:\n" + A.toString() + "\n";

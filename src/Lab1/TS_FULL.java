@@ -3,23 +3,30 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package ImperialShips;
+package Lab1;
+
+import ai.Choice;
+import data.Transform;
 
 /**
  *
  * @author Anatoli Grishenko <Anatoli.Grishenko@gmail.com>
  */
-public class YT_FULL extends MASTER_DRIVE_AIRBORNE {
+public class TS_FULL extends MASTER_DRIVE_AIRBORNE {
 
     @Override
     public void setup() {
         super.setup();
         myType = "TS";
         useAlias = true;
-        logger.offEcho();
-        this.setFrameDelay(10);
+        logger.onEcho();
+        this.setFrameDelay(1);
 //        this.closeRemote();
         this.openRemote();
+        this.recruitByCFP=false;
+        this.recruitByREQUEST=true;
+        this.showPerceptions=false;
+//        sessionAlias="CHOCOLATE";
     }
 
 }

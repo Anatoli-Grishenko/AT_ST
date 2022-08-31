@@ -1,31 +1,26 @@
+package Lab1;
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package ImperialShips;
-
+import ATST.AT_ST_FULL;
 import ai.Choice;
-import data.Transform;
 
-/**
- *
- * @author Anatoli Grishenko <Anatoli.Grishenko@gmail.com>
- */
-public class TS_FULL extends MASTER_DRIVE_AIRBORNE {
+public class SC_FULL extends MASTER_DRIVE_GROUND {
 
     @Override
     public void setup() {
         super.setup();
-        myType = "TS";
+        myType = "ITT";
         useAlias = true;
-        logger.onEcho();
-        this.setFrameDelay(10);
+        logger.offEcho();
+        this.setFrameDelay(1);
 //        this.closeRemote();
         this.openRemote();
         this.recruitByCFP=false;
         this.recruitByREQUEST=true;
-//        sessionAlias="CHOCOLATE";
+        this.showPerceptions=false;
     }
-
 }

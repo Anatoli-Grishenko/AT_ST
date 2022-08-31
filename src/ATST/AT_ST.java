@@ -5,7 +5,6 @@ package ATST;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-import agents.DroidStarship;
 import agents.LARVAFirstAgent;
 import data.Transform;
 import jade.core.AID;
@@ -74,7 +73,7 @@ public class AT_ST extends LARVAFirstAgent {
             "SandboxIndonesiaFlatN",
             "SandboxEndor",
             "Dagobah",
-            "Tatooine",
+            "Endor",
             "Wobani",
             "Zeffo"
         };
@@ -243,7 +242,7 @@ public class AT_ST extends LARVAFirstAgent {
             return false;
         }
         getEnvironment().setExternalPerceptions(session.getContent());
-        Info(this.easyPrintPerceptions());
+//        Info(this.easyPrintPerceptions());
         return true;
     }
 
@@ -373,6 +372,18 @@ public class AT_ST extends LARVAFirstAgent {
         return Thread.currentThread().getStackTrace()[2].getMethodName();
     }
 
+    protected Status doQueryMissions() {
+        Info("Querying MISSIONS");
+        outbox = new ACLMessage();
+        outbox.setSender(this.getAID());;
+        outbox.addReceiver(new AID(sessionManager, AID.ISLOCALNAME));
+        outbox.setContent("Query MISSIONS session " + sessionKey);
+        this.LARVAsend(outbox);
+        session = LARVAblockingReceive();
+        E.setExternalPerceptions(session.getContent());
+        return myStatus;
+    }
+
     protected Status doQueryCities() {
         Info("Querying CITIES");
         outbox = new ACLMessage();
@@ -381,7 +392,7 @@ public class AT_ST extends LARVAFirstAgent {
         outbox.setContent("Query CITIES session " + sessionKey);
         this.LARVAsend(outbox);
         session = LARVAblockingReceive();
-        E.setExternalPerceptions(session.getContent());
+        getEnvironment().setExternalPerceptions(session.getContent());
         return myStatus;
     }
 
@@ -391,7 +402,19 @@ public class AT_ST extends LARVAFirstAgent {
         outbox.setContent("Query "+type.toUpperCase()+" session " + sessionKey);
         this.LARVAsend(outbox);
         session = LARVAblockingReceive();
-        E.setExternalPerceptions(session.getContent());
+        getEnvironment().setExternalPerceptions(session.getContent());
+        Message("Found "+getEnvironment().getPeople().length+" "+type+" in "
+                +getEnvironment().getCurrentCity());
         return myStatus;
     }
+    
+//    protected Status doQueryShips(String type) {
+//        Info("Querying ships "+type);
+//        outbox = session.createReply();
+//        outbox.setContent("Query "+type.toUpperCase()+" session " + sessionKey);
+//        this.LARVAsend(outbox);
+//        session = LARVAblockingReceive();
+//        E.setExternalPerceptions(session.getContent());
+//        return myStatus;
+//    }
 }
