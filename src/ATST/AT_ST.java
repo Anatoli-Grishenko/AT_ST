@@ -6,9 +6,9 @@ package ATST;
  * and open the template in the editor.
  */
 import agents.LARVAFirstAgent;
-import data.Transform;
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
+import tools.TimeHandler;
 import tools.emojis;
 import world.Perceptor;
 
@@ -28,18 +28,15 @@ public class AT_ST extends LARVAFirstAgent {
     protected ACLMessage open, session;
     protected String[] contentTokens;
     protected String action = "", preplan = "";
-    protected int indexplan = 0, myEnergy = 0;
-    protected boolean showPerceptions, useAlias = false;
+    protected int indexplan = 0, myEnergy = 0, indexSensor = 0;
+    protected boolean showPerceptions=false, useAlias = false;
 
     @Override
     public void setup() {
         super.setup();
-//        logger.offEcho();
         showPerceptions = false;
         logger.onTabular();
         myStatus = Status.START;
-        this.setupEnvironment();
-        this.setFrameDelay(10);
         actions = new String[]{
             "LEFT",
             "RIGHT",
@@ -57,21 +54,21 @@ public class AT_ST extends LARVAFirstAgent {
             "SandboxBumpy2",
             "SandboxBumpy3",
             "SandboxBumpy4",
-            "SandboxBumpy4UPS",
+            //            "SandboxBumpy4UPS",
             "SandboxHalfmoon1",
-            "SandboxHalfmoon1Inv",
+            //            "SandboxHalfmoon1Inv",
             "SandboxHalfmoon3",
-            "SandboxDagobah-A",
-            "SandboxDagobah-B",
-            "SandboxDagobah-C",
-            "SandboxDagobah-D",
-            "SandboxTatooine-A",
-            "SandboxTatooine-B",
-            "SandboxTatooine-C",
-            "SandboxTatooine-D",
-            "SandboxIndonesiaFlatNW",
-            "SandboxIndonesiaFlatN",
-            "SandboxEndor",
+            //            "SandboxDagobah-A",
+            //            "SandboxDagobah-B",
+            //            "SandboxDagobah-C",
+            //            "SandboxDagobah-D",
+            //            "SandboxTatooine-A",
+            //            "SandboxTatooine-B",
+            //            "SandboxTatooine-C",
+            //            "SandboxTatooine-D",
+            //            "SandboxIndonesiaFlatNW",
+            //            "SandboxIndonesiaFlatN",
+            //            "SandboxEndor",
             "Dagobah",
             "Endor",
             "Wobani",
@@ -79,9 +76,10 @@ public class AT_ST extends LARVAFirstAgent {
         };
     }
 
+    // 99% Reciclado de HelloWorld
     @Override
     public void Execute() {
-        Info("Status: " + myStatus.name());
+        Info("\n\n\nStatus: " + myStatus.name());
         switch (myStatus) {
             case START:
                 myStatus = Status.CHECKIN;
@@ -92,7 +90,7 @@ public class AT_ST extends LARVAFirstAgent {
             case OPENPROBLEM:
                 myStatus = MyOpenProblem();
                 break;
-            case JOINSESSION:
+            case JOINSESSION: // This is new wrt HelloWorld
                 myStatus = MyJoinSession();
                 break;
             case SOLVEPROBLEM:
@@ -111,14 +109,14 @@ public class AT_ST extends LARVAFirstAgent {
         }
     }
 
+    // 100% Reciclado de HelloWorld
     @Override
     public void takeDown() {
         Info("Taking down...");
-//        this.saveSequenceDiagram("./" + getLocalName() + ".seqd");
-        this.closeRemote();
         super.takeDown();
     }
 
+    // 100% Reciclado de HelloWorld
     public Status MyCheckin() {
         Info("Loading passport and checking-in to LARVA");
         //this.loadMyPassport("config/ANATOLI_GRISHENKO.passport");
@@ -129,11 +127,13 @@ public class AT_ST extends LARVAFirstAgent {
         return Status.OPENPROBLEM;
     }
 
+    // 100% Reciclado de HelloWorld
     public Status MyCheckout() {
         this.doLARVACheckout();
         return Status.EXIT;
     }
 
+    // 99% Reciclado de HelloWorld
     public Status MyOpenProblem() {
 
         if (this.DFGetAllProvidersOf(service).isEmpty()) {
@@ -142,7 +142,7 @@ public class AT_ST extends LARVAFirstAgent {
         }
         problemManager = this.DFGetAllProvidersOf(service).get(0);
         Info("Found problem manager " + problemManager);
-        problem = this.inputSelect("PLease select problem to solve", problems, problem);
+        problem = "SandboxTesting";
         if (problem == null) {
             return Status.CHECKOUT;
         }
@@ -161,13 +161,14 @@ public class AT_ST extends LARVAFirstAgent {
             session = LARVAblockingReceive();
             sessionManager = session.getSender().getLocalName();
             Info(sessionManager + " says: " + session.getContent());
-            return Status.JOINSESSION;
+            return Status.JOINSESSION; // This is the only change wrt HelloWorld
         } else {
             Error(content);
             return Status.CHECKOUT;
         }
     }
 
+    // This is 100% A NEW METHOD
     public Status MyJoinSession() {
         this.DFAddMyServices(new String[]{"TYPE AT_ST"});
         outbox = session.createReply();
@@ -178,17 +179,12 @@ public class AT_ST extends LARVAFirstAgent {
             Error("Could not join session " + sessionKey + " due to " + session.getContent());
             return Status.CLOSEPROBLEM;
         }
-        if (problem.equals("SandboxTesting")) {
-            this.AssistedNavigation(37, 13);
-        }
         this.MyReadPerceptions();
         Info(this.easyPrintPerceptions());
-        this.openRemote();
-        return Status.SOLVEPROBLEM;
+        return this.myAssistedNavigation(37, 13);
     }
 
     public Status MySolveProblem() {
-        this.MyReadPerceptions();
         if (plan == null) {
             action = this.inputSelect("Please select next action to execute: ", actions, action);
             preplan += "\"" + action + "\",";
@@ -201,27 +197,26 @@ public class AT_ST extends LARVAFirstAgent {
         if (!MyExecuteAction(action)) {
             return Status.CLOSEPROBLEM;
         }
+        this.MyReadPerceptions();
         return Status.SOLVEPROBLEM;
     }
 
-    protected Status AssistedNavigation(int goalx, int goaly) {
-        String plan1[] = {};
-
+    protected Status myAssistedNavigation(int goalx, int goaly) {
         Info("Requesting course to " + goalx + " " + goaly);
         outbox = session.createReply();
         outbox.setContent("Request course to " + goalx + " " + goaly + " Session " + sessionKey);
         this.LARVAsend(outbox);
         session = this.LARVAblockingReceive();
         getEnvironment().setExternalPerceptions(session.getContent());
-        return MySolveProblem();
+        return Status.CHECKIN.SOLVEPROBLEM;
     }
 
     protected boolean MyExecuteAction(String action) {
         Info("Executing action " + action);
         outbox = session.createReply();
         outbox.setContent("Request execute " + action + " session " + sessionKey);
+        outbox.setReplyWith("EXECUTE " + action);
         this.LARVAsend(outbox);
-        this.myEnergy++;
         session = this.LARVAblockingReceive();
         if (!session.getContent().startsWith("Inform")) {
             Error("Unable to execute action " + action + " due to " + session.getContent());
@@ -242,7 +237,7 @@ public class AT_ST extends LARVAFirstAgent {
             return false;
         }
         getEnvironment().setExternalPerceptions(session.getContent());
-//        Info(this.easyPrintPerceptions());
+        Info(this.easyPrintPerceptions());
         return true;
     }
 
@@ -260,7 +255,8 @@ public class AT_ST extends LARVAFirstAgent {
     public String easyPrintPerceptions() {
         String res;
         int matrix[][];
-
+        if (!logger.isEcho())
+            return "";
         if (getEnvironment() == null) {
             Error("Environment is unacessible, please setupEnvironment() first");
             return "";
@@ -367,54 +363,4 @@ public class AT_ST extends LARVAFirstAgent {
             return String.format("%05.2f ", v);
         }
     }
-
-    public String myMethod() {
-        return Thread.currentThread().getStackTrace()[2].getMethodName();
-    }
-
-    protected Status doQueryMissions() {
-        Info("Querying MISSIONS");
-        outbox = new ACLMessage();
-        outbox.setSender(this.getAID());;
-        outbox.addReceiver(new AID(sessionManager, AID.ISLOCALNAME));
-        outbox.setContent("Query MISSIONS session " + sessionKey);
-        this.LARVAsend(outbox);
-        session = LARVAblockingReceive();
-        E.setExternalPerceptions(session.getContent());
-        return myStatus;
-    }
-
-    protected Status doQueryCities() {
-        Info("Querying CITIES");
-        outbox = new ACLMessage();
-        outbox.setSender(this.getAID());;
-        outbox.addReceiver(new AID(sessionManager, AID.ISLOCALNAME));
-        outbox.setContent("Query CITIES session " + sessionKey);
-        this.LARVAsend(outbox);
-        session = LARVAblockingReceive();
-        getEnvironment().setExternalPerceptions(session.getContent());
-        return myStatus;
-    }
-
-    protected Status doQueryPeople(String type) {
-        Info("Querying people "+type);
-        outbox = session.createReply();
-        outbox.setContent("Query "+type.toUpperCase()+" session " + sessionKey);
-        this.LARVAsend(outbox);
-        session = LARVAblockingReceive();
-        getEnvironment().setExternalPerceptions(session.getContent());
-        Message("Found "+getEnvironment().getPeople().length+" "+type+" in "
-                +getEnvironment().getCurrentCity());
-        return myStatus;
-    }
-    
-//    protected Status doQueryShips(String type) {
-//        Info("Querying ships "+type);
-//        outbox = session.createReply();
-//        outbox.setContent("Query "+type.toUpperCase()+" session " + sessionKey);
-//        this.LARVAsend(outbox);
-//        session = LARVAblockingReceive();
-//        E.setExternalPerceptions(session.getContent());
-//        return myStatus;
-//    }
 }

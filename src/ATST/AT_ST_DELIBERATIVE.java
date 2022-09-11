@@ -13,7 +13,7 @@ import ai.DecisionSet;
 import ai.Plan;
 import tools.emojis;
 
-public class AT_ST_DELIBERATIVE extends AT_ST_FULL {
+public class AT_ST_DELIBERATIVE extends AT_ST_BASIC_SURROUND {
 
     Plan behaviour = null;
     Environment Ei, Ef;
@@ -25,9 +25,6 @@ public class AT_ST_DELIBERATIVE extends AT_ST_FULL {
         Plan p = new Plan();
         for (int i = 0; i < Ei.getRange() / 2 - 2; i++) {
             Ei.cache();
-            Info("\n====================================================\n"
-                    + "Planning STEP:" + i + " :\n " + this.easyPrintPerceptions(Ei, A)
-                    + "\nPlan: " + p.toString() + "\n");
             if (!Ve(Ei)) {
                 return null;
             } else if (G(Ei)) {
@@ -49,7 +46,7 @@ public class AT_ST_DELIBERATIVE extends AT_ST_FULL {
     @Override
     public Status MySolveProblem() {
         // Analizar objetivo
-        Info(this.easyPrintPerceptions(E, A));
+//        Info(this.easyPrintPerceptions(E, A));
         if (G(E)) {
             Info("The problem is over");
             this.Message("The problem " + problem + " has been solved");
@@ -66,9 +63,6 @@ public class AT_ST_DELIBERATIVE extends AT_ST_FULL {
                 behaviour.remove(0);
                 Info("Excuting " + a);
                 this.MyExecuteAction(a.getName());
-                Info("\n---------------------------------------------------\n"
-                        + "executing:" + a.getName() + " :\n " + this.easyPrintPerceptions(E, A)
-                        + "\nPlan: " + behaviour.toString() + "\n");
                 if (!Ve(E)) {
                     this.Error("The agent is not alive: " + E.getStatus());
                     return Status.CLOSEPROBLEM;

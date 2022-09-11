@@ -12,7 +12,7 @@ public class STF_BASIC_AVOID extends STF_DIRECT_DRIVE {
 
     public double goAvoid(Environment E, Choice a) {
         if (a.getName().equals("RIGHT")) {
-            a.setAnnotation(this.myMethod());
+            
             return Choice.ANY_VALUE;
         }
         return Choice.MAX_UTILITY;

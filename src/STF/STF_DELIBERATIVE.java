@@ -12,7 +12,7 @@ import ai.DecisionSet;
 import ai.Plan;
 import tools.emojis;
 
-public class STF_DELIBERATIVE extends STF_FULL {
+public class STF_DELIBERATIVE extends STF_BASIC_SURROUND {
 
     protected Plan behaviour = null;
     protected Environment Ei, Ef;

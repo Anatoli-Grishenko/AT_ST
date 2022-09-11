@@ -44,7 +44,7 @@ public class STF_BASIC_SURROUND extends STF_BASIC_AVOID {
             nextWhichwall = "LEFT";
             nextdistance = E.getDistance();
             nextPoint=E.getGPS();
-            a.setAnnotation(this.myMethod());
+            
             return Choice.ANY_VALUE;
         }
         return Choice.MAX_UTILITY;
@@ -52,7 +52,7 @@ public class STF_BASIC_SURROUND extends STF_BASIC_AVOID {
 
     public double goKeepOnWall(Environment E, Choice a) {
         if (a.getName().equals("MOVE")) {
-            a.setAnnotation(this.myMethod());
+            
             return Choice.ANY_VALUE;
         }
         return Choice.MAX_UTILITY;
@@ -60,7 +60,7 @@ public class STF_BASIC_SURROUND extends STF_BASIC_AVOID {
 
     public double goTurnOnWallLeft(Environment E, Choice a) {
         if (a.getName().equals("LEFT")) {
-            a.setAnnotation(this.myMethod());
+            
             return Choice.ANY_VALUE;
         }
         return Choice.MAX_UTILITY;
@@ -69,7 +69,7 @@ public class STF_BASIC_SURROUND extends STF_BASIC_AVOID {
 
     public double goRevolveWallLeft(Environment E, Choice a) {
         if (a.getName().equals("RIGHT")) {
-            a.setAnnotation(this.myMethod());
+            
             return Choice.ANY_VALUE;
         }
         return Choice.MAX_UTILITY;
@@ -78,7 +78,7 @@ public class STF_BASIC_SURROUND extends STF_BASIC_AVOID {
     public double goStopWallLeft(Environment E, Choice a) {
         if (a.getName().equals("RIGHT")) {
             this.resetAutoNAV();
-            a.setAnnotation(this.myMethod());
+            
             return Choice.ANY_VALUE;
         }
         return Choice.MAX_UTILITY;
