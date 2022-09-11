@@ -1,10 +1,5 @@
 package ATST;
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 import agents.LARVAFirstAgent;
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
@@ -12,12 +7,15 @@ import tools.TimeHandler;
 import tools.emojis;
 import world.Perceptor;
 
-/**
- *
- * @author lcv
+/*
+This is a fully operable agent that conencts to a world, execute actions
+and read perceptions, nut does not have autonomy of decisions, that is, we tell it
+what to do with a meu, but it sets the skeleton for future autonomos versions from the 
+basic structure of HwelloWorld.AgentLARVAFull.java 
  */
 public class AT_ST extends LARVAFirstAgent {
 
+    // The same statuses but there is a new one: JOINSESSION
     protected enum Status {
         START, CHECKIN, CHECKOUT, OPENPROBLEM, CLOSEPROBLEM, JOINSESSION, SOLVEPROBLEM, EXIT
     }
@@ -29,7 +27,7 @@ public class AT_ST extends LARVAFirstAgent {
     protected String[] contentTokens;
     protected String action = "", preplan = "";
     protected int indexplan = 0, myEnergy = 0, indexSensor = 0;
-    protected boolean showPerceptions=false, useAlias = false;
+    protected boolean showPerceptions = false, useAlias = false;
 
     @Override
     public void setup() {
@@ -37,6 +35,10 @@ public class AT_ST extends LARVAFirstAgent {
         showPerceptions = false;
         logger.onTabular();
         myStatus = Status.START;
+        // Thse brand-new agents have their own, powerful Environment, capable of
+        // storing much information about the real environment of the agent coming from 
+        // the perceptions. See reference for the list of powerful methods
+        this.setupEnvironment();
         actions = new String[]{
             "LEFT",
             "RIGHT",
@@ -76,7 +78,7 @@ public class AT_ST extends LARVAFirstAgent {
         };
     }
 
-    // 99% Reciclado de HelloWorld
+    // 99% Recycled from AgentLARVAFull
     @Override
     public void Execute() {
         Info("\n\n\nStatus: " + myStatus.name());
@@ -169,7 +171,9 @@ public class AT_ST extends LARVAFirstAgent {
     }
 
     // This is 100% A NEW METHOD
+    // Just register in the DF as a terrestrial agent AT_ST
     public Status MyJoinSession() {
+        // Register in the DF
         this.DFAddMyServices(new String[]{"TYPE AT_ST"});
         outbox = session.createReply();
         outbox.setContent("Request join session " + sessionKey);
@@ -179,11 +183,14 @@ public class AT_ST extends LARVAFirstAgent {
             Error("Could not join session " + sessionKey + " due to " + session.getContent());
             return Status.CLOSEPROBLEM;
         }
+        // Immediately afterwards, read the first perceptions
         this.MyReadPerceptions();
-        Info(this.easyPrintPerceptions());
+//        Info(this.easyPrintPerceptions());
+        // Mark this GPS positoin as our destination
         return this.myAssistedNavigation(37, 13);
     }
 
+    // No autonomy. Just ask the user what to do next
     public Status MySolveProblem() {
         if (plan == null) {
             action = this.inputSelect("Please select next action to execute: ", actions, action);
@@ -201,6 +208,7 @@ public class AT_ST extends LARVAFirstAgent {
         return Status.SOLVEPROBLEM;
     }
 
+    // Just mark an X Y position as our next target. No more
     protected Status myAssistedNavigation(int goalx, int goaly) {
         Info("Requesting course to " + goalx + " " + goaly);
         outbox = session.createReply();
@@ -211,11 +219,12 @@ public class AT_ST extends LARVAFirstAgent {
         return Status.CHECKIN.SOLVEPROBLEM;
     }
 
+    // 100% New method to execute an action
     protected boolean MyExecuteAction(String action) {
         Info("Executing action " + action);
         outbox = session.createReply();
+        // Remember to include sessionID in all communications
         outbox.setContent("Request execute " + action + " session " + sessionKey);
-        outbox.setReplyWith("EXECUTE " + action);
         this.LARVAsend(outbox);
         session = this.LARVAblockingReceive();
         if (!session.getContent().startsWith("Inform")) {
@@ -225,6 +234,8 @@ public class AT_ST extends LARVAFirstAgent {
         return true;
     }
 
+    // Read perceptions and send them directly to the Environment instance,
+    // so we can query any items of sensors and added-value information
     protected boolean MyReadPerceptions() {
         Info("Reading perceptions");
         outbox = session.createReply();
@@ -241,6 +252,7 @@ public class AT_ST extends LARVAFirstAgent {
         return true;
     }
 
+    // 99% recycled from HelloWorld
     public Status MyCloseProblem() {
         outbox = open.createReply();
         outbox.setContent("Cancel session " + sessionKey);
@@ -252,11 +264,13 @@ public class AT_ST extends LARVAFirstAgent {
         return Status.CHECKOUT;
     }
 
+    // A new method just to show the information of sensors in console
     public String easyPrintPerceptions() {
         String res;
         int matrix[][];
-        if (!logger.isEcho())
+        if (!logger.isEcho()) {
             return "";
+        }
         if (getEnvironment() == null) {
             Error("Environment is unacessible, please setupEnvironment() first");
             return "";
@@ -363,4 +377,5 @@ public class AT_ST extends LARVAFirstAgent {
             return String.format("%05.2f ", v);
         }
     }
+
 }
