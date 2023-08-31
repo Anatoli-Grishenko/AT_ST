@@ -6,19 +6,10 @@ package ATST;
  * and open the template in the editor.
  */
 import Environment.Environment;
-import agents.LARVAFirstAgent;
 import ai.Choice;
 import ai.DecisionSet;
-import console.Console;
-import data.Transform;
-import geometry.Compass;
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
-import jade.lang.acl.MessageTemplate;
-import java.util.ArrayList;
-import tools.TimeHandler;
-import tools.emojis;
-import world.Perceptor;
 
 public class AT_ST_DIRECTDRIVE extends AT_ST {
 
@@ -30,7 +21,7 @@ public class AT_ST_DIRECTDRIVE extends AT_ST {
         this.deactivateSequenceDiagrams();
 //        this.setContinuousSequenceDiagram(false);
         // If you want to execute step by step, uncomment thisus
-//        this.openRemote();
+        this.openRemote();
         
         // Thse brand-new agents have their own, powerful Environment, capable of
         // storing much information about the real environment of the agent coming from 
@@ -48,11 +39,11 @@ public class AT_ST_DIRECTDRIVE extends AT_ST {
 
     public Status MyOpenProblem() {
 
-        if (this.DFGetAllProvidersOf(service).isEmpty()) {
+        if (this.LARVADFGetAllProvidersOf(service).isEmpty()) {
             Error("Service PMANAGER is down");
             return Status.CHECKOUT;
         }
-        problemManager = this.DFGetAllProvidersOf(service).get(0);
+        problemManager = this.LARVADFGetAllProvidersOf(service).get(0);
         Info("Found problem manager " + problemManager);
         // Selector of the problem to solve
         problem = this.inputSelect("Please select problem to solve", problems, problem);
@@ -102,7 +93,7 @@ public class AT_ST_DIRECTDRIVE extends AT_ST {
     }
     // Just register in the DF as a terrestrial agent AT_ST
     public Status MyJoinSession() {
-        this.DFAddMyServices(new String[]{"TYPE AT_ST"});
+        this.LARVADFAddMyServices(new String[]{"TYPE AT_ST"});
         outbox = session.createReply();
         outbox.setContent("Request join session " + sessionKey);
         this.LARVAsend(outbox);

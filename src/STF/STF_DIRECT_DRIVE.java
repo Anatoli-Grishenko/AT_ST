@@ -41,7 +41,7 @@ public class STF_DIRECT_DRIVE extends AT_ST_DIRECTDRIVE {
     @Override
     public Status MyJoinSession() {
 
-        this.DFAddMyServices(new String[]{"TYPE STF"});
+        this.LARVADFAddMyServices(new String[]{"TYPE STF"});
         outbox = session.createReply();
         outbox.setContent("Request join session " + sessionKey);
         this.LARVAsend(outbox);

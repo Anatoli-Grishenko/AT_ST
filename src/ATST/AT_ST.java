@@ -31,6 +31,7 @@ public class AT_ST extends LARVAFirstAgent {
 
     @Override
     public void setup() {
+        this.enableDeepLARVAMonitoring();
         super.setup();
         showPerceptions = false;
         logger.onTabular();
@@ -39,6 +40,7 @@ public class AT_ST extends LARVAFirstAgent {
         // storing much information about the real environment of the agent coming from 
         // the perceptions. See reference for the list of powerful methods
         this.setupEnvironment();
+        openRemote();
         actions = new String[]{
             "LEFT",
             "RIGHT",
@@ -48,34 +50,35 @@ public class AT_ST extends LARVAFirstAgent {
             "EXIT"};
         problems = new String[]{
             "SandboxTesting",
-            "SandboxFlatN",
-            "SandboxFlat-1-1",
-            "SandboxFlatS",
-            "SandboxBumpy0",
-            "SandboxBumpy1",
-            "SandboxBumpy2",
-            "SandboxBumpy3",
-            "SandboxBumpy4",
-            //            "SandboxBumpy4UPS",
-            "SandboxHalfmoon1",
-            //            "SandboxHalfmoon1Inv",
-            "SandboxHalfmoon3",
-            //            "SandboxDagobah-A",
-            //            "SandboxDagobah-B",
-            //            "SandboxDagobah-C",
-            //            "SandboxDagobah-D",
-            //            "SandboxTatooine-A",
-            //            "SandboxTatooine-B",
-            //            "SandboxTatooine-C",
-            //            "SandboxTatooine-D",
-            //            "SandboxIndonesiaFlatNW",
-            //            "SandboxIndonesiaFlatN",
-            //            "SandboxEndor",
-            "Dagobah",
-            "Endor",
-            "Wobani",
+            "FlatNorth",
+            "FlatNorthWest",
+            "FlatSouth",
+            "Bumpy0",
+            "Bumpy1",
+            "Bumpy2",
+            "Bumpy3",
+            "Bumpy4",
+            "Halfmoon1",
+            "Halfmoon3",
+            "Dagobah.Apr1",
+            "Dagobah.Apr2",
+            "Dagobah.Not1",
+            "Dagobah.Not2",
+            "Endor.Sob1",
+            "Endor.Sob2",
+            "Endor.Hon1",
+            "Endor.Hon2",
+            "Wobani.Apr1",
+            "Wobani.Not1",
+            "Wobani.Sob1",
+            "Wobani.Hon1",
+            "SandboxTesting.Alaska",
             "Zeffo"
         };
+        //        this.openRemote();
+        this.activateSequenceDiagrams();
+//        this.deactivateSequenceDiagrams();
+        this.setFrameDelay(200);
     }
 
     // 99% Recycled from AgentLARVAFull
@@ -138,11 +141,11 @@ public class AT_ST extends LARVAFirstAgent {
     // 99% Reciclado de HelloWorld
     public Status MyOpenProblem() {
 
-        if (this.DFGetAllProvidersOf(service).isEmpty()) {
+        if (this.LARVADFGetAllProvidersOf(service).isEmpty()) {
             Error("Service PMANAGER is down");
             return Status.CHECKOUT;
         }
-        problemManager = this.DFGetAllProvidersOf(service).get(0);
+        problemManager = this.LARVADFGetAllProvidersOf(service).get(0);
         Info("Found problem manager " + problemManager);
         problem = "SandboxTesting";
         if (problem == null) {
@@ -174,7 +177,7 @@ public class AT_ST extends LARVAFirstAgent {
     // Just register in the DF as a terrestrial agent AT_ST
     public Status MyJoinSession() {
         // Register in the DF
-        this.DFAddMyServices(new String[]{"TYPE AT_ST"});
+        this.LARVADFAddMyServices(new String[]{"TYPE AT_ST"});
         outbox = session.createReply();
         outbox.setContent("Request join session " + sessionKey);
         this.LARVAsend(outbox);
